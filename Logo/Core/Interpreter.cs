@@ -8,5 +8,6 @@ namespace Logo.Core
 {
     public class Interpreter
     {
+        public Interpreter() { }
     }
 }

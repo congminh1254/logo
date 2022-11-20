@@ -46,10 +46,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\FileLoader.cs" />
+    <Compile Include="Core\FileReader.cs" />
     <Compile Include="Core\Interpreter.cs" />
     <Compile Include="Core\Lexer.cs" />
     <Compile Include="Core\Parser.cs" />
+    <Compile Include="Core\Token\TokenType.cs" />
     <Compile Include="Core\Utils.cs" />
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>

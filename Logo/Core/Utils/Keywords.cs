@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Logo.Core
+namespace Logo.Core.Utils
 {
-    public class FileLoader
+    internal class Keywords
     {
-
     }
 }

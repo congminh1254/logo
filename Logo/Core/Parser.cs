@@ -8,6 +8,6 @@ namespace Logo.Core
 {
     public class Parser
     {
-
+        public Parser() { }
     }
 }
