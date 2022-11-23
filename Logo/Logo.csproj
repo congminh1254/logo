@@ -49,9 +49,11 @@
     <Compile Include="Core\FileReader.cs" />
     <Compile Include="Core\Interpreter.cs" />
     <Compile Include="Core\Lexer.cs" />
-    <Compile Include="Core\Parser.cs" />
-    <Compile Include="Core\Token\TokenType.cs" />
-    <Compile Include="Core\Utils.cs" />
+    <Compile Include="Core\SourceCode.cs" />
+    <Compile Include="Core\Utils\Keywords.cs" />
+    <Compile Include="Core\Utils\Position.cs" />
+    <Compile Include="Core\Utils\Token.cs" />
+    <Compile Include="Core\Utils\TokenType.cs" />
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>
     </Compile>

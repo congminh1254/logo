@@ -4,46 +4,48 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Logo.Core.Token
+namespace Logo.Core.Utils
 {
     public class TokenType
     {
         public const string AND = "AND";
         public const string OR = "OR";
         public const string NOT = "NOT";
-        public const string EQ = "=";
-        public const string DOT = ".";
-        public const string COMMA = ",";
-        public const string SEMI = ";";
-        public const string LPAREN = "(";
-        public const string RPAREN = ")";
-        public const string LCURLY = "{";
-        public const string RCURLY = "}";
-        public const string COLON = "=";
-        public const string HASH = "#";
-        public const string UND = "_";
-        public const string UUU = "___";
-        public const string IF = "if";
-        public const string ELSE = "else";
-        public const string WHILE = "while";
-        public const string TRUE = "true";
-        public const string FALSE = "false";
-        public const string RETURN = "return";
-        public const string PLUS = "+";
-        public const string MINUS = "-";
-        public const string MUL = "*";
-        public const string DIV = "/";
-        public const string MOD = "%";
-        public const string LT = "<";
-        public const string LE = "<=";
-        public const string GT = ">";
-        public const string GE = ">=";
-        public const string EQEQ = "==";
-        public const string DIFF = "!=";
-        public const string INT = "int";
-        public const string STR = "str";
-        public const string FLOAT = "float";
-        public const string BOOL = "bool";
+        public const string EQ = "EQ";
+        public const string DOT = "DOT";
+        public const string COMMA = "COMMA";
+        public const string SEMI = "SEMI";
+        public const string LPAREN = "LPAREN";
+        public const string RPAREN = "RPAREN";
+        public const string LCURLY = "LCURLY";
+        public const string RCURLY = "RCURLY";
+        public const string COLON = "COLON";
+        public const string HASH = "HASH";
+        public const string UND = "UND";
+        public const string UUU = "UUU";
+        public const string IF = "IF";
+        public const string ELSE = "ELSE";
+        public const string WHILE = "WHILE";
+        public const string TRUE = "TRUE";
+        public const string FALSE = "FALSE";
+        public const string RETURN = "RETURN";
+        public const string PLUS = "PLUS";
+        public const string MINUS = "MINUS";
+        public const string MUL = "MUL";
+        public const string DIV = "DIV";
+        public const string MOD = "MOD";
+        public const string LT = "LT";
+        public const string LE = "LE";
+        public const string GT = "GT";
+        public const string GE = "GE";
+        public const string EQEQ = "EQEQ";
+        public const string DIFF = "DIFF";
+        public const string INT = "INT";
+        public const string STR = "STR";
+        public const string FLOAT = "FLOAT";
+        public const string BOOL = "BOOL";
         public const string TURTLE = "TURTLE";
+        public const string QUOTE = "QUOTE";
+        public const string EOF = "EOF";
     }
 }

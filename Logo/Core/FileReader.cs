@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using Logo.Core.Utils;
 
 namespace Logo.Core
 {
@@ -17,7 +18,7 @@ namespace Logo.Core
         char newlineChar = '\n';
         char eof = (char)3;
 
-        FileReader(string filePath)
+        public FileReader(string filePath)
         {
             this.filePath = filePath;
             loadFile();
@@ -49,6 +50,11 @@ namespace Logo.Core
                 position++;
                 return lines[line][position];
             }
+        }
+
+        public Position getPostion()
+        {
+            return new Position(line, position);
         }
     }
 }
