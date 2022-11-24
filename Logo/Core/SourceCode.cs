@@ -14,10 +14,10 @@ namespace Logo.Core
         FileReader reader;
         char currentChar;
 
-        public SourceCode(string fileName)
+        public SourceCode(string input, bool file = true)
         {
             currPos = new Position(0, 0);
-            reader = new FileReader(fileName);
+            reader = new FileReader(input, file);
         }
 
         public char getNextChar()
@@ -25,6 +25,11 @@ namespace Logo.Core
             currentChar = reader.getNextChar();
             currPos = reader.getPostion();
             return currentChar;
+        }
+
+        public char previewChar()
+        {
+            return reader.previewChar();
         }
 
         public char getChar()

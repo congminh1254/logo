@@ -19,11 +19,11 @@ namespace Logo.Core.Utils
 
         public string toString()
         {
-            return "Position(line="+line+",column="+column+")";
+            return "Position(line="+(line+1)+",column="+(column+1)+")";
         }
 
-        public int getLine() { return line; }
+        public int getLine() { return line+1; }
 
-        public int getColumn() { return column; }
+        public int getColumn() { return column+1; }
     }
 }

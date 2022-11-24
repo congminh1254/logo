@@ -18,10 +18,17 @@ namespace Logo.Core
         char newlineChar = '\n';
         char eof = (char)3;
 
-        public FileReader(string filePath)
+        public FileReader(string input, bool file = true)
         {
-            this.filePath = filePath;
-            loadFile();
+            if (file)
+            {
+                this.filePath = input;
+                loadFile();
+            }
+            else
+            {
+                lines = input.Split('\n');
+            }
         }
 
         private void loadFile()
@@ -49,6 +56,22 @@ namespace Logo.Core
                 }
                 position++;
                 return lines[line][position];
+            }
+        }
+
+        public char previewChar()
+        {
+            if (line >= lines.Length)
+                return eof;
+            else
+            {
+                if (position == lines[line].Length - 1)
+                {
+                    return newlineChar;
+                } else
+                {
+                    return lines[line][position + 1];
+                }
             }
         }
 

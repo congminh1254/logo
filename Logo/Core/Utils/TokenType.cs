@@ -47,5 +47,8 @@ namespace Logo.Core.Utils
         public const string TURTLE = "TURTLE";
         public const string QUOTE = "QUOTE";
         public const string EOF = "EOF";
+        public const string NL = "NL";
+        public const string ERROR = "ERROR";
+        public const string IDENTIFIER = "IDENTIFIER";
     }
 }

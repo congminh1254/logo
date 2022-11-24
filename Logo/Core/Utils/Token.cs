@@ -18,6 +18,12 @@ namespace Logo.Core.Utils
         bool boolValue;
         private ValueType valueType;
 
+        public Token(string tokenType, Position position)
+        {
+            this.tokenType = tokenType;
+            this.position = position;
+        }
+
         public Token(string tokenType, Position position, string textValue)
         {
             this.position = position;
@@ -71,9 +77,19 @@ namespace Logo.Core.Utils
             return string.Format("Token(type={0},value={1},position={2})", tokenType, value, position.toString());
         }
 
+        public string getTokenType()
+        {
+            return this.tokenType;
+        }
+
         public ValueType getValueType() 
         {
             return valueType; 
+        }
+
+        public Position getPosition()
+        {
+            return position;
         }
 
         public int getIntValue()

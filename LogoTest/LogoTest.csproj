@@ -19,4 +19,8 @@
     <ProjectReference Include="..\Logo\Logo.csproj" />
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /y $(ProjectDir)\Fixtures\ $(ProjectDir)$(OutDir)\Fixtures\" />
+  </Target>
+
 </Project>
