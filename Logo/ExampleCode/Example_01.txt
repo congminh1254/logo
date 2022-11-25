@@ -1,21 +1,3 @@
-﻿
-plus(a: int, b: int) {
-    return a+b
-}
-
-main() {
-    turtle = Turtle()
-    turtle.Pen.Color = 0x00FF00
-    turtle.Name = "abc"
-    turtle.Pen.Enable = False
-    turtle.MoveTo(50,50)
-    turtle.Direction = 0
-    turtle.Pen.Enable = True
-
-    x = 0
-    while x<5 {
-        turtle.Move(20)
-        turtle.Direction = (turtle.Direction+216)%360
-        x = x+1
-    }
+﻿while a<10 {
+	a = a+1
 }

@@ -21,7 +21,7 @@ namespace Logo
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            SourceCode source = new SourceCode("C:\\Users\\mcong\\source\\repos\\logo\\Logo\\ExampleCode\\Example_01.txt");
+            SourceCode source = new SourceCode("./ExampleCode/Example_01.txt");
 
             Lexer lexer = new Lexer(source);
             while (true)

@@ -32,6 +32,11 @@ namespace Logo.Core
             return reader.previewChar();
         }
 
+        public char previewChar2()
+        {
+            return reader.previewChar2();
+        }
+
         public char getChar()
         {
             return currentChar;
@@ -40,6 +45,11 @@ namespace Logo.Core
         public Position getPosition()
         {
             return currPos;
+        }
+
+        public string getAllText()
+        {
+            return reader.getAllText();
         }
     }
 }

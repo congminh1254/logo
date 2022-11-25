@@ -52,6 +52,8 @@ namespace Logo.Core
                 {
                     position = -1;
                     line++;
+                    if (line >= lines.Length)
+                        return eof;
                     return newlineChar;
                 }
                 position++;
@@ -61,18 +63,40 @@ namespace Logo.Core
 
         public char previewChar()
         {
-            if (line >= lines.Length)
-                return eof;
-            else
+            return previewNextNthChar(1);
+        }
+
+        public char previewChar2()
+        {
+            return previewNextNthChar(2);
+        }
+
+        public char previewNextNthChar(int n)
+        {
+            int curLine = line, curPos = position;
+            for (int i = 0; i < n; i++)
             {
-                if (position == lines[line].Length - 1)
+                if (curLine >= lines.Length
+                    || (curPos >= lines[curLine].Length - 1 && curLine == lines.Length - 1))
+                    return eof;
+                else
                 {
-                    return newlineChar;
-                } else
-                {
-                    return lines[line][position + 1];
+                    if (curPos == lines[curLine].Length - 1)
+                    {
+                        curLine++;
+                        curPos = 0;
+                        if (i == n - 1)
+                            return newlineChar;
+                    }
+                    else
+                    {
+                        curPos += 1;
+                        if (i == n - 1)
+                            return lines[curLine][curPos];
+                    }
                 }
             }
+            return eof;
         }
 
         public Position getPostion()

@@ -25,11 +25,11 @@ namespace Logo.Core
             { "return", TokenType.RETURN },
             { "true", TokenType.TRUE },
             { "false", TokenType.FALSE },
-            { "int", TokenType.INT },
-            { "str", TokenType.STR },
-            { "float", TokenType.FLOAT },
-            { "bool", TokenType.BOOL },
-            { "turtle", TokenType.TURTLE },
+            { "int", TokenType.INT_T },
+            { "str", TokenType.STR_T },
+            { "float", TokenType.FLOAT_T },
+            { "bool", TokenType.BOOL_T },
+            { "Turtle", TokenType.TURTLE },
             { "___", TokenType.UUU }
         };
         static Dictionary<char, string> singleChar = new Dictionary<char, string>()
@@ -51,6 +51,8 @@ namespace Logo.Core
             { '/', TokenType.DIV },
             { '%', TokenType.MOD },
             { '"', TokenType.QUOTE },
+            { '<', TokenType.LT },
+            { '>', TokenType.GT },
             { (char)3, TokenType.EOF },
             { '\n', TokenType.NL }
         };
@@ -104,12 +106,17 @@ namespace Logo.Core
             {
 
             }
-            return source.getChar();
+            return getChar();
         }
 
         char previewChar()
         {
             return source.previewChar();
+        }
+
+        char previewChar2()
+        {
+            return source.previewChar2();
         }
 
         public Token advanceToken()
@@ -143,6 +150,10 @@ namespace Logo.Core
                     doubleChar.TryGetValue(""+ c + c2, out tokenType);
                     token = new Token(tokenType, pos);
                     return token;
+                }
+                if (c2 == '_' && c == '_' && previewChar2() == '_')
+                {
+                    return new Token(TokenType.UUU, pos);
                 }
                 token = new Token(result, pos);
                 return token;
@@ -187,7 +198,7 @@ namespace Logo.Core
         Token getIdentifierToken()
         {
             Position position = source.getPosition();
-            string name = ""+source.getChar();
+            string name = ""+getChar();
             char c2 = previewChar();
             while (Char.IsLetter(c2) || Char.IsDigit(c2) || c2 == '_')
             {
@@ -200,14 +211,15 @@ namespace Logo.Core
             if (string.IsNullOrEmpty(tokenType))
             {
                 return new Token(TokenType.IDENTIFIER, position, name);
-            }
+            } else if (tokenType == TokenType.TRUE || tokenType == TokenType.FALSE)
+                return new Token(TokenType.BOOL, position, (tokenType == TokenType.TRUE));
             return new Token(tokenType, position, name);
         }
 
         Token getNumberToken()
         {
             Position position = source.getPosition();
-            string name = "" + source.getChar();
+            string name = "" + getChar();
             char c2 = previewChar();
             string tokenType = TokenType.INT;
             while (Char.IsDigit(c2) || c2 == '.')
