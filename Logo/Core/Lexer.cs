@@ -29,7 +29,7 @@ namespace Logo.Core
             { "str", TokenType.STR_T },
             { "float", TokenType.FLOAT_T },
             { "bool", TokenType.BOOL_T },
-            { "Turtle", TokenType.TURTLE },
+            { "Turtle", TokenType.TURTLE_T },
             { "___", TokenType.UUU }
         };
         static Dictionary<char, string> singleChar = new Dictionary<char, string>()
@@ -200,7 +200,7 @@ namespace Logo.Core
             Position position = source.getPosition();
             string name = ""+getChar();
             char c2 = previewChar();
-            while (Char.IsLetter(c2) || Char.IsDigit(c2) || c2 == '_')
+            while (Char.IsLetter(c2) || Char.IsDigit(c2) || c2 == '_' || c2 == '.')
             {
                 name += c2;
                 getNextChar();

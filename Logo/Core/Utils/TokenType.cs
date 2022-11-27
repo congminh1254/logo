@@ -48,6 +48,7 @@ namespace Logo.Core.Utils
         public const string FLOAT_T = "FLOAT_T";
         public const string STR_T = "STR_T";
         public const string BOOL_T = "BOOL_T";
+        public const string TURTLE_T = "TURTLE_T";
         public const string TURTLE = "TURTLE";
         public const string QUOTE = "QUOTE";
         public const string EOF = "EOF";

@@ -110,11 +110,18 @@
     <Compile Include="Core\FileReader.cs" />
     <Compile Include="Core\Interpreter.cs" />
     <Compile Include="Core\Lexer.cs" />
+    <Compile Include="Core\Parser.cs" />
     <Compile Include="Core\SourceCode.cs" />
+    <Compile Include="Core\Utils\ErrorHandling.cs" />
+    <Compile Include="Core\Utils\Grammar\Expression.cs" />
+    <Compile Include="Core\Utils\Grammar\Statement.cs" />
+    <Compile Include="Core\Utils\Grammar\TurtleVar.cs" />
+    <Compile Include="Core\Utils\Grammar\Variable.cs" />
     <Compile Include="Core\Utils\Keywords.cs" />
     <Compile Include="Core\Utils\Position.cs" />
     <Compile Include="Core\Utils\Token.cs" />
     <Compile Include="Core\Utils\TokenType.cs" />
+    <Compile Include="Core\Utils\Utils.cs" />
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -154,13 +161,15 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ExampleCode\Example_01.txt" />
+    <Content Include="ExampleCode\Example_01.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Tests\Fixtures\**">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-</ItemGroup>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
