@@ -27,9 +27,21 @@ namespace Logo.Core
             return currentToken;
         }
 
+        Token previewToken()
+        {
+            return nextToken;
+        }
+
         string peekToken()
         {
+            Console.WriteLine("peekToken: " + nextToken.getTokenType());
             return nextToken.getTokenType();
+        }
+
+        void skipNewlineToken()
+        {
+            while (previewToken().getTokenType() == TokenType.NL)
+                acceptToken(advanceToken(), TokenType.NL);
         }
 
         Token acceptAdvanceToken(string[] expectedType)
@@ -43,6 +55,7 @@ namespace Logo.Core
 
         Token acceptTokens(Token token, string[] expectedTypes)
         {
+            Console.WriteLine(token.toString());
             foreach (string type in expectedTypes)
             {
                 if (token.getTokenType() == type)
@@ -56,6 +69,7 @@ namespace Logo.Core
 
         Token acceptToken(Token token, string expectedType)
         {
+            Console.WriteLine(token.toString());
             if (expectedType != token.getTokenType())
             {
                 ErrorHandling.pushError(new ErrorHandling.LogoException("Unexpected token type " + token.getTokenType() + ", expected: " + expectedType, token.getPosition()));
@@ -65,19 +79,24 @@ namespace Logo.Core
 
         public Dictionary<string, FunctionStatement> parse()
         {
-            while (lexer.getToken().getTokenType() != TokenType.EOF)
+            skipNewlineToken();
+            while (previewToken().getTokenType() != TokenType.EOF)
             {
+                Console.WriteLine(nextToken.getTokenType());
+                Console.ReadLine();
                 FunctionStatement func = parseFunction();
-                if (functions[func.identifier.getTextValue()] != null)
+                if (functions.ContainsKey(func.identifier.getTextValue()))
                 {
                     ErrorHandling.pushError(new ErrorHandling.LogoException("Function " + func.identifier.getTextValue() + " already defined!", func.identifier.getPosition()));
                 }
+                skipNewlineToken();
             }
             return functions;
         }
 
         FunctionStatement parseFunction()
         {
+            Console.WriteLine("Parse function!!!");
             Token identifier = acceptAdvanceToken(new string[] { TokenType.IDENTIFIER });
             List<DeclarationStatement> vars = new List<DeclarationStatement>();
             acceptAdvanceToken(new string[] { TokenType.LPAREN });
@@ -93,6 +112,7 @@ namespace Logo.Core
             acceptAdvanceToken(new string[] { TokenType.RPAREN });
             acceptAdvanceToken(new string[] { TokenType.NL });
             acceptAdvanceToken(new string[] { TokenType.LCURLY});
+            acceptAdvanceToken(new string[] { TokenType.NL });
 
             List<Statement> statements = parseFunctionBody();
             while (peekToken() == TokenType.NL)

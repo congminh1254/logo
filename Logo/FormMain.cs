@@ -1,5 +1,6 @@
 ﻿using Logo.Core;
 using Logo.Core.Utils;
+using Logo.Core.Utils.Grammar;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -21,16 +22,31 @@ namespace Logo
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            SourceCode source = new SourceCode("./ExampleCode/Example_01.txt");
-
-            Lexer lexer = new Lexer(source);
-            while (true)
+            try
             {
-                Token token = lexer.advanceToken();
-                Console.WriteLine(token.toString());
-                if (token.getTokenType() == TokenType.EOF)
-                    break;
+                string code = "add(a: int, b: int)\n" +
+                    "{\n" +
+                    "   return a+b\n" +
+                    "}\n";
+                Lexer lexer = new Lexer(new SourceCode(code, false));
+                Parser parser = new Parser(lexer);
+
+                Dictionary<string, FunctionStatement> result = parser.parse();
+                Console.WriteLine("Length: " + result.Count);
+                foreach (KeyValuePair<string, FunctionStatement> pair in result)
+                {
+                    Console.Write("Key: " + pair.Key + ", value: " + pair.Value.ToString());
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
+            }
+            foreach (ErrorHandling.LogoException exc in ErrorHandling.exceptions)
+            {
+                Console.WriteLine(exc.toString());
+            };
         }
     }
 }

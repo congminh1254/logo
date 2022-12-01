@@ -33,7 +33,7 @@ namespace Logo
             List<Token> tokens = lexer.getAllTokens();
             Token token = tokens[tokens.Count-1];
             Assert.AreEqual(TokenType.EOF, token.getTokenType());
-            token = lexer.getToken();
+            token = lexer.getCurrentToken();
             Assert.AreEqual(TokenType.EOF, token.getTokenType());
         }
 
@@ -140,7 +140,7 @@ namespace Logo
             Assert.AreEqual(TokenType.STR_T, tokens[i++].getTokenType());
             Assert.AreEqual(TokenType.FLOAT_T, tokens[i++].getTokenType());
             Assert.AreEqual(TokenType.BOOL_T, tokens[i++].getTokenType());
-            Assert.AreEqual(TokenType.TURTLE, tokens[i++].getTokenType());
+            Assert.AreEqual(TokenType.TURTLE_T, tokens[i++].getTokenType());
             Assert.AreEqual(TokenType.UUU, tokens[i++].getTokenType());
         }
 

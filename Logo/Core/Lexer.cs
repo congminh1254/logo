@@ -85,6 +85,12 @@ namespace Logo.Core
 
         public Token getToken()
         {
+            token = advanceToken();
+            return token;
+        }
+
+        public Token getCurrentToken()
+        {
             return token;
         }
 
