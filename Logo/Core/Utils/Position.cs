@@ -8,8 +8,8 @@ namespace Logo.Core.Utils
 {
     public class Position
     {
-        public int line;
-        public int column;
+        int line;
+        int column;
 
         public Position(int line, int column)
         {
@@ -17,7 +17,7 @@ namespace Logo.Core.Utils
             this.column = column;
         }
 
-        public string toString()
+        public override string ToString()
         {
             return "Position(line="+(line+1)+",column="+(column+1)+")";
         }

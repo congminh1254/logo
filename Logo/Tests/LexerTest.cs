@@ -22,7 +22,7 @@ namespace Logo
             Position position = tokens[0].getPosition();
             Assert.AreEqual(position.getColumn(), 1);
             Assert.AreEqual(position.getLine(), 1);
-            Assert.IsNotEmpty(position.toString());
+            Assert.IsNotEmpty(position.ToString());
         }
 
         [Test]
@@ -47,7 +47,7 @@ namespace Logo
             Assert.AreEqual(TokenType.STR, token.getTokenType());
             Assert.AreEqual("Hello world", token.getTextValue());
             Assert.AreEqual(Token.ValueType.TEXT, token.getValueType());
-            Assert.IsNotEmpty(token.toString());
+            Assert.IsNotEmpty(token.ToString());
         }
 
         [Test]
@@ -70,7 +70,7 @@ namespace Logo
             Assert.AreEqual(TokenType.INT, token.getTokenType());
             Assert.AreEqual(1, token.getIntValue());
             Assert.AreEqual(Token.ValueType.INT, token.getValueType());
-            Assert.IsNotEmpty(token.toString());
+            Assert.IsNotEmpty(token.ToString());
         }
 
         [Test]
@@ -83,7 +83,7 @@ namespace Logo
             Assert.AreEqual(TokenType.FLOAT, token.getTokenType());
             Assert.AreEqual(1.75, token.getFloatValue());
             Assert.AreEqual(Token.ValueType.FLOAT, token.getValueType());
-            Assert.IsNotEmpty(token.toString());
+            Assert.IsNotEmpty(token.ToString());
         }
 
         [Test]
@@ -108,7 +108,7 @@ namespace Logo
             token = tokens[1];
             Assert.AreEqual(TokenType.BOOL, token.getTokenType());
             Assert.AreEqual(false, token.getBooleanValue());
-            Assert.IsNotEmpty(token.toString());
+            Assert.IsNotEmpty(token.ToString());
         }
 
         [Test]

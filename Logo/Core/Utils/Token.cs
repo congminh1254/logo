@@ -9,13 +9,12 @@ namespace Logo.Core.Utils
     public class Token
     {
         public enum ValueType { TEXT, INT, FLOAT, BOOL }
-        string tokenType;
-        Position position;
-
-        string textValue;
-        int intValue;
-        float floatValue;
-        bool boolValue;
+        string tokenType { get; set; }
+        Position position { get; set; }
+        string textValue { get; set; }
+        int intValue { get; set; }
+        float floatValue { get; set; }
+        bool boolValue { get; set; }
         private ValueType valueType;
 
         public Token(string tokenType, Position position)
@@ -56,7 +55,7 @@ namespace Logo.Core.Utils
             this.valueType = ValueType.BOOL;
         }
 
-        public string toString()
+        public override string ToString()
         {
             string value = "";
             switch (valueType)
@@ -74,7 +73,7 @@ namespace Logo.Core.Utils
                     value = boolValue.ToString();
                     break;
             }
-            return string.Format("Token(type={0},value={1},position={2})", tokenType, value, position.toString());
+            return string.Format("Token(type={0},value={1},position={2})", tokenType, value, position.ToString());
         }
 
         public string getTokenType()
