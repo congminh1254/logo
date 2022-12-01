@@ -8,13 +8,12 @@ namespace Logo.Core
     {
         SourceCode source;
 
-        Token token;
-        Token previousToken;
+        public Token token { get; set; }
 
         char eof = (char)3;
         char newline = '\n';
 
-        static Dictionary<string, string> keywords = new Dictionary<string, string>()
+        static Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType>()
         {
             { "AND", TokenType.AND},
             { "OR", TokenType.OR },
@@ -32,7 +31,7 @@ namespace Logo.Core
             { "Turtle", TokenType.TURTLE },
             { "___", TokenType.UUU }
         };
-        static Dictionary<char, string> singleChar = new Dictionary<char, string>()
+        static Dictionary<char, TokenType> singleChar = new Dictionary<char, TokenType>()
         {
             { '=', TokenType.EQ },
             { '.', TokenType.DOT },
@@ -56,7 +55,7 @@ namespace Logo.Core
             { (char)3, TokenType.EOF },
             { '\n', TokenType.NL }
         };
-        static Dictionary<string, string> doubleChar = new Dictionary<string, string>()
+        static Dictionary<string, TokenType> doubleChar = new Dictionary<string, TokenType>()
         {
             { "<=", TokenType.LE },
             { ">=", TokenType.GE },
@@ -73,19 +72,11 @@ namespace Logo.Core
         public List<Token> getAllTokens()
         {
             List<Token> tokens = new List<Token>();
-            while (true)
             {
                 token = advanceToken();
                 tokens.Add(token);
-                if (token.getTokenType() == TokenType.EOF)
-                    break;
-            }
+            } while (token.tokenType != TokenType.EOF);
             return tokens;
-        }
-
-        public Token getToken()
-        {
-            return token;
         }
 
         public bool isWhiteSpace(char c)
@@ -121,7 +112,6 @@ namespace Logo.Core
 
         public Token advanceToken()
         {
-            previousToken = token;
             char c = getNextChar();
 
             if (c == eof)
@@ -130,7 +120,7 @@ namespace Logo.Core
                 return token;
             }
 
-            string result = null;
+            TokenType result;
             singleChar.TryGetValue(c, out result);
 
             if (result == TokenType.QUOTE)
@@ -139,14 +129,14 @@ namespace Logo.Core
                 return token;
             }
 
-            if (!string.IsNullOrEmpty(result))
+            if (singleChar.ContainsKey(c))
             {
                 char c2 = previewChar();
                 Position pos = source.getPosition();
                 if (c2 == '=' && (c == '=' || c == '!' || c == '>' || c == '<'))
                 {
                     c2 = getNextChar();
-                    string tokenType;
+                    TokenType tokenType;
                     doubleChar.TryGetValue(""+ c + c2, out tokenType);
                     token = new Token(tokenType, pos);
                     return token;
@@ -206,9 +196,8 @@ namespace Logo.Core
                 getNextChar();
                 c2 = previewChar();
             }
-            string tokenType;
-            keywords.TryGetValue(name, out tokenType);
-            if (string.IsNullOrEmpty(tokenType))
+            TokenType tokenType;
+            if (!keywords.TryGetValue(name, out tokenType))
             {
                 return new Token(TokenType.IDENTIFIER, position, name);
             } else if (tokenType == TokenType.TRUE || tokenType == TokenType.FALSE)
@@ -221,7 +210,7 @@ namespace Logo.Core
             Position position = source.getPosition();
             string name = "" + getChar();
             char c2 = previewChar();
-            string tokenType = TokenType.INT;
+            TokenType tokenType = TokenType.INT;
             while (Char.IsDigit(c2) || c2 == '.')
             {
                 if (c2 == '.')

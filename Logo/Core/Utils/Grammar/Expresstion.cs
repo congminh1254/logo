@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Logo.Core.Utils.Grammar
 {
-    internal class Expresstion
+    interface Expresstion
     {
     }
 }

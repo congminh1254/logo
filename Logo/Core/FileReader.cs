@@ -36,11 +36,6 @@ namespace Logo.Core
             lines = File.ReadAllLines(filePath);
         }
 
-        public string getAllText()
-        {
-            return string.Join(newline, lines);
-        }
-
         public char getNextChar()
         {
             if (line >= lines.Length)

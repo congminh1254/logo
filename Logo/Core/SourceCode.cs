@@ -47,9 +47,5 @@ namespace Logo.Core
             return currPos;
         }
 
-        public string getAllText()
-        {
-            return reader.getAllText();
-        }
     }
 }
