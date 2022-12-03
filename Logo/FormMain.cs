@@ -21,7 +21,7 @@ namespace Logo
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            
+            //Position position = tokens[0].position;
         }
     }
 }

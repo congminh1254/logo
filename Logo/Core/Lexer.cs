@@ -1,6 +1,7 @@
 ﻿using Logo.Core.Utils;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 
 namespace Logo.Core
 {
@@ -10,10 +11,10 @@ namespace Logo.Core
 
         public Token token { get; set; }
 
-        char eof = (char)3;
-        char newline = '\n';
+        char eof = Utils.Utils.eof;
+        string newline = Utils.Utils.newline;
 
-        static Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType>()
+        Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType>()
         {
             { "AND", TokenType.AND},
             { "OR", TokenType.OR },
@@ -29,9 +30,8 @@ namespace Logo.Core
             { "float", TokenType.FLOAT_T },
             { "bool", TokenType.BOOL_T },
             { "Turtle", TokenType.TURTLE },
-            { "___", TokenType.UUU }
         };
-        static Dictionary<char, TokenType> singleChar = new Dictionary<char, TokenType>()
+        Dictionary<char, TokenType> singleChar = new Dictionary<char, TokenType>()
         {
             { '=', TokenType.EQ },
             { '.', TokenType.DOT },
@@ -52,68 +52,50 @@ namespace Logo.Core
             { '"', TokenType.QUOTE },
             { '<', TokenType.LT },
             { '>', TokenType.GT },
-            { (char)3, TokenType.EOF },
-            { '\n', TokenType.NL }
+            { Utils.Utils.eof, TokenType.EOF }
         };
-        static Dictionary<string, TokenType> doubleChar = new Dictionary<string, TokenType>()
+        Dictionary<string, TokenType> doubleChar = new Dictionary<string, TokenType>()
         {
             { "<=", TokenType.LE },
             { ">=", TokenType.GE },
             { "==", TokenType.EQEQ },
             { "!=", TokenType.DIFF},
-            { "\\"+"\"", TokenType.QUOTE }
+            { "\\"+"\"", TokenType.QUOTE },
+            { "__", TokenType.UU }
         };
 
         public Lexer(SourceCode source)
         {
+            if (newline.Length > 1)
+                doubleChar.Add(newline, TokenType.NL);
+            else
+                singleChar.Add(newline[0], TokenType.NL);
             this.source = source;
-        }
-
-        public List<Token> getAllTokens()
-        {
-            List<Token> tokens = new List<Token>();
-            {
-                token = advanceToken();
-                tokens.Add(token);
-            } while (token.tokenType != TokenType.EOF);
-            return tokens;
-        }
-
-        public bool isWhiteSpace(char c)
-        {
-            if (c == ' ' || c == '\t' || c == '\r')
-                return true;
-            return false;
-        }
-
-        char getChar()
-        {
-            return source.getChar();
         }
 
         char getNextChar(bool skipWhiteSpace = true)
         {
-            while (isWhiteSpace(source.getNextChar()) && skipWhiteSpace)
+            char c = source.peekChar();
+            while ((char.IsWhiteSpace(c) && c!= newline[0] && !(newline.Length == 2 && newline[1] == c)) && skipWhiteSpace && c != eof)
             {
-
+                source.getNextChar();
+                c = source.peekChar();
             }
-            return getChar();
+            return source.getNextChar();
         }
 
-        char previewChar()
+        bool checkNewline(char c)
         {
-            return source.previewChar();
-        }
-
-        char previewChar2()
-        {
-            return source.previewChar2();
+            if ((newline.Length > 1 && newline[0] == c && newline[1] == source.peekChar()) || (newline.Length == 0 && newline[0] == c))
+            {
+                return true;
+            }
+            return false;
         }
 
         public Token advanceToken()
         {
             char c = getNextChar();
-
             if (c == eof)
             {
                 token = new Token(TokenType.EOF, source.getPosition(), "");
@@ -123,15 +105,13 @@ namespace Logo.Core
             TokenType result;
             singleChar.TryGetValue(c, out result);
 
-            if (result == TokenType.QUOTE)
-            {
-                token = getStringToken();
+            token = buildStringToken();
+            if (token != null)
                 return token;
-            }
 
+            char c2 = source.peekChar();
             if (singleChar.ContainsKey(c))
             {
-                char c2 = previewChar();
                 Position pos = source.getPosition();
                 if (c2 == '=' && (c == '=' || c == '!' || c == '>' || c == '<'))
                 {
@@ -141,41 +121,69 @@ namespace Logo.Core
                     token = new Token(tokenType, pos);
                     return token;
                 }
-                if (c2 == '_' && c == '_' && previewChar2() == '_')
+                if (c2 == '_' && c == '_')
                 {
-                    return new Token(TokenType.UUU, pos);
+                    return new Token(TokenType.UU, pos);
                 }
                 token = new Token(result, pos);
                 return token;
             }
-
-            if (Char.IsLetter(c))
+            if ((newline.Length == 1 && c == newline[0]) || (newline.Length == 2 && c == newline[0] && c2 == newline[1]))
             {
-                token = getIdentifierToken();
+                c2 = getNextChar();
+                token = new Token(TokenType.NL, source.getPosition());
                 return token;
             }
+            token = buildIdentifierToken();
+            if (token != null) return token;
 
-            if (Char.IsDigit(c))
-            {
-                token = getNumberToken();
-                return token;
-            }
+            token = buildNumberToken();
+            if (token != null) return token;
 
             token = new Token(TokenType.ERROR, source.getPosition(), "Token not valid!");
             return token;
         }
 
-        Token getStringToken()
+        Token buildStringToken()
         {
+            TokenType result;
+            singleChar.TryGetValue(source.getCurrChar(), out result);
+            if (result != TokenType.QUOTE)
+                return null;
             Position position = source.getPosition();
             char prv = '-', c = getNextChar(false);
             string output = "";
             while (c != '"' || prv == '\\')
             {
                 if (prv != '\\')
-                    output += c;
-                prv = c;
-                if (c == eof || c == newline)
+                {
+                    if (c != '\\') {
+                        output += c;
+                    }
+                    prv = c;
+                }
+                else
+                {
+                    prv = '-';
+                    switch (c)
+                    {
+                        case '\"':
+                        case '\\':
+                            output += c;
+                            break;
+                        case 'n':
+                            output += '\n';
+                            break;
+                        case 't':
+                            output += '\t';
+                            break;
+                        default:
+                            token = new Token(TokenType.ERROR, position, String.Format("Char '\\{0}' is not supported", c));
+                            break;
+                    }
+                }
+                
+                if (c == eof || checkNewline(c))
                 {
                     token = new Token(TokenType.ERROR, position, "String closing not found"); 
                     return token;
@@ -185,17 +193,20 @@ namespace Logo.Core
             return new Token(TokenType.STR, position, output);
         }
 
-        Token getIdentifierToken()
+        Token buildIdentifierToken()
         {
+            if (!Char.IsLetter(source.getCurrChar()))
+                return null;
             Position position = source.getPosition();
-            string name = ""+getChar();
-            char c2 = previewChar();
+            string name = ""+source.getCurrChar();
+            char c2 = source.peekChar();
             while (Char.IsLetter(c2) || Char.IsDigit(c2) || c2 == '_')
             {
                 name += c2;
-                getNextChar();
-                c2 = previewChar();
+                source.getNextChar();
+                c2 = source.peekChar();
             }
+            
             TokenType tokenType;
             if (!keywords.TryGetValue(name, out tokenType))
             {
@@ -205,30 +216,65 @@ namespace Logo.Core
             return new Token(tokenType, position, name);
         }
 
-        Token getNumberToken()
+        Token buildNumberToken()
         {
+            if (!Char.IsDigit(source.getCurrChar()))
+                return null;
             Position position = source.getPosition();
-            string name = "" + getChar();
-            char c2 = previewChar();
+            string name = "" + source.getCurrChar();
+            char c2 = source.peekChar();
             TokenType tokenType = TokenType.INT;
             while (Char.IsDigit(c2) || c2 == '.')
             {
                 if (c2 == '.')
                 {
-                    tokenType = TokenType.FLOAT;
+                    if (tokenType == TokenType.INT)
+                    {
+                        tokenType = TokenType.FLOAT;
+                    } else
+                    {
+                        return new Token(TokenType.ERROR, position, "Number is not valid");
+                    }
                 }
                 name += c2;
-                getNextChar();
-                c2 = previewChar();
+                source.getNextChar();
+                c2 = source.peekChar();
             }
             if (name[name.Length -1] == '.')
             {
                 return new Token(TokenType.ERROR, position, "Number not valid");
             }
             if (tokenType == TokenType.INT)
-                return new Token(tokenType, position, int.Parse(name));
-            else 
+            {
+                int value = Utils.Utils.charToNumber(name[0]);
+                for (int i = 1; i < name.Length; i++)
+                    value = value * 10 + Utils.Utils.charToNumber(name[i]);
+                return new Token(tokenType, position, value);
+            }
+            else
+            {
+                float f = Utils.Utils.charToNumber(name[0]);
+                int div = 1;
+                bool precision = false;
+                for (int i = 1; i<name.Length; i++)
+                {
+                    if (name[i] != '.')
+                    {
+                        if (!precision)
+                        {
+                            f = f * 10 + Utils.Utils.charToNumber(name[i]);
+                        } else
+                        {
+                            div *= 10;
+                            f = f + Utils.Utils.charToNumber(name[i]) / div;
+                        }
+                    } else
+                    {
+                        precision= true;
+                    }
+                }
                 return new Token(tokenType, position, float.Parse(name));
+            }
         }
     }
 }

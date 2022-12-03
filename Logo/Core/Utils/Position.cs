@@ -8,8 +8,8 @@ namespace Logo.Core.Utils
 {
     public class Position
     {
-        int line;
-        int column;
+        public int line { get; set; }
+        public int column { get; set; }
 
         public Position(int line, int column)
         {

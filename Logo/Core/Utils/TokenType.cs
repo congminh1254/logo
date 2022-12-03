@@ -22,7 +22,7 @@ namespace Logo.Core.Utils
        COLON,
        HASH,
        UND,
-       UUU,
+       UU,
        IF,
        ELSE,
        WHILE,

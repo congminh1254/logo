@@ -11,10 +11,10 @@ namespace Logo.Core.Utils
         public enum ValueType { TEXT, INT, FLOAT, BOOL }
         public TokenType tokenType { get; set; }
         public Position position { get; set; }
-        public string textValue { get; set; }
-        public int intValue { get; set; }
-        public float floatValue { get; set; }
-        public bool boolValue { get; set; }
+        public string textValue { get; set; } = null;
+        public int? intValue { get; set; } = null;
+        public float? floatValue { get; set; } = null;
+        public bool? boolValue { get; set; } = null;
         public ValueType valueType { get; set; }
 
         public Token(TokenType tokenType, Position position)

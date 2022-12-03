@@ -8,95 +8,54 @@ using Logo.Core.Utils;
 
 namespace Logo.Core
 {
-    public class FileReader
+    public class FileReader: SourceCode
     {
-        string filePath;
-        string[] lines;
-        int position = -1;
+        int column = -1;
         int line = 0;
-        string newline = System.Environment.NewLine;
-        char newlineChar = '\n';
-        char eof = (char)3;
+        string newline = Utils.Utils.newline;
+        StreamReader reader;
+        char nextChar = Utils.Utils.nullChar, lastChar = Utils.Utils.nullChar, currChar = Utils.Utils.nullChar;
+        char eof = Utils.Utils.eof;
 
-        public FileReader(string input, bool file = true)
+        public FileReader(StreamReader reader)
         {
-            if (file)
-            {
-                this.filePath = input;
-                loadFile();
-            }
-            else
-            {
-                lines = input.Split('\n');
-            }
+            this.reader = reader;
+            currChar = Utils.Utils.nullChar;
+            nextChar = (char)reader.Read();
         }
 
-        private void loadFile()
+        public char getCurrChar()
         {
-            lines = File.ReadAllLines(filePath);
+            return currChar;
         }
 
         public char getNextChar()
         {
-            if (line >= lines.Length)
+            if ((newline.Length > 1 && newline[1] == nextChar && newline[0] == currChar) || (newline.Length == 0 && newline[0] == nextChar)) {
+                line++;
+                column = -1;
+            }
+            column++;
+            char c = nextChar;
+            currChar = c;
+            if (!reader.EndOfStream)
             {
-                return eof;
+                nextChar = (char)reader.Read();
             } else
             {
-                if (position == lines[line].Length - 1)
-                {
-                    position = -1;
-                    line++;
-                    if (line >= lines.Length)
-                        return eof;
-                    return newlineChar;
-                }
-                position++;
-                return lines[line][position];
+                nextChar = eof;
             }
+            return c;
         }
 
-        public char previewChar()
+        public char peekChar()
         {
-            return previewNextNthChar(1);
+            return nextChar;
         }
 
-        public char previewChar2()
+        public Position getPosition()
         {
-            return previewNextNthChar(2);
-        }
-
-        public char previewNextNthChar(int n)
-        {
-            int curLine = line, curPos = position;
-            for (int i = 0; i < n; i++)
-            {
-                if (curLine >= lines.Length
-                    || (curPos >= lines[curLine].Length - 1 && curLine == lines.Length - 1))
-                    return eof;
-                else
-                {
-                    if (curPos == lines[curLine].Length - 1)
-                    {
-                        curLine++;
-                        curPos = 0;
-                        if (i == n - 1)
-                            return newlineChar;
-                    }
-                    else
-                    {
-                        curPos += 1;
-                        if (i == n - 1)
-                            return lines[curLine][curPos];
-                    }
-                }
-            }
-            return eof;
-        }
-
-        public Position getPostion()
-        {
-            return new Position(line, position);
+            return new Position(line, column);
         }
     }
 }
