@@ -1,9 +1,12 @@
 using Logo;
 using Logo.Core;
 using Logo.Core.Utils;
+using System.Collections.Generic;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
+using System.IO;
+using NUnit.Framework.Internal;
+using System.Text;
 
 namespace Logo
 {
@@ -23,13 +26,20 @@ namespace Logo
             return tokens;
         }
 
+        StreamReader stringToStreamReader(string s)
+        {
+            byte[] byteArray = Encoding.ASCII.GetBytes(s);
+            MemoryStream stream = new MemoryStream(byteArray);
+            return new StreamReader(stream);
+        }
+
         [Test]
-        public void TestFileReader()
+        public void TestSourceCode()
         {
             string filename = "./Tests/Fixtures/ExampleFile.txt";
             using (var reader = new System.IO.StreamReader(filename))
             {
-                SourceCode source = new FileReader(reader);
+                SourceCode source = new SourceCode(reader);
                 char c = source.getNextChar();
                 Assert.AreEqual(c, 'a');
                 Assert.AreEqual(source.getCurrChar(), 'a');
@@ -71,13 +81,13 @@ namespace Logo
             string filename = "./Tests/Fixtures/ExampleFile.txt";
             using (var reader = new System.IO.StreamReader(filename))
             {
-                SourceCode source = new FileReader(reader);
+                SourceCode source = new SourceCode(reader);
                 Lexer lexer = new Lexer(source);
                 List<Token> tokens = getAllTokens(lexer);
                 Assert.NotZero(tokens.Count);
                 Position position = tokens[0].position;
-                Assert.AreEqual(position.getColumn(), 1);
-                Assert.AreEqual(position.getLine(), 1);
+                Assert.AreEqual(position.column, 0);
+                Assert.AreEqual(position.line, 0);
                 Assert.IsNotEmpty(position.ToString());
             }
         }
@@ -85,7 +95,9 @@ namespace Logo
         [Test]
         public void TestEof()
         {
-            SourceCode source = new TextReader("");
+            MemoryStream stream = new MemoryStream(Encoding.ASCII.GetBytes(""));
+            StreamReader reader = new StreamReader(stream);
+            SourceCode source = new SourceCode(reader);
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[tokens.Count-1];
@@ -97,7 +109,7 @@ namespace Logo
         [Test]
         public void TestInvalidString()
         {
-            SourceCode source = new TextReader(" \"absdfsf   ");
+            SourceCode source = new SourceCode(stringToStreamReader(" \"absdfsf   "));
             Lexer lexer = new Lexer(source);
             Token errorToken = getAllTokens(lexer).Find(token => token.tokenType == TokenType.ERROR);
             Assert.IsNotNull(errorToken);
@@ -107,36 +119,33 @@ namespace Logo
         [Test]
         public void TestValidIntNumber()
         {
-            SourceCode source = new TextReader(" 1   ");
+            SourceCode source = new SourceCode(stringToStreamReader(" 1   "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[0];
             Assert.AreEqual(TokenType.INT, token.tokenType);
             Assert.AreEqual(1, token.intValue);
-            Assert.AreEqual(Token.ValueType.INT, token.valueType);
             Assert.IsNotEmpty(token.ToString());
         }
 
         [Test]
         public void TestValidFloatNumber()
         {
-            SourceCode source = new TextReader(" 1.75 3.567  ");
+            SourceCode source = new SourceCode(stringToStreamReader(" 1.75 3.567  "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[0];
             Assert.AreEqual(TokenType.FLOAT, token.tokenType);
             Assert.AreEqual(1.75, token.floatValue);
-            Assert.AreEqual(Token.ValueType.FLOAT, token.valueType);
             token = tokens[1];
             Assert.AreEqual(3.567, Math.Round((Decimal)token.floatValue, 3, MidpointRounding.AwayFromZero));
-            Assert.AreEqual(Token.ValueType.FLOAT, token.valueType);
             Assert.IsNotEmpty(token.ToString());
         }
 
         [Test]
         public void TestInvalidNumber()
         {
-            SourceCode source = new TextReader(" 1. ");
+            SourceCode source = new SourceCode(stringToStreamReader(" 1. "));
             Lexer lexer = new Lexer(source);
             Token errorToken = getAllTokens(lexer).Find(token => token.tokenType == TokenType.ERROR);
             Assert.IsNotNull(errorToken);
@@ -146,7 +155,7 @@ namespace Logo
         [Test]
         public void TestInvalidNumber2()
         {
-            SourceCode source = new TextReader(" 1.1.1 ");
+            SourceCode source = new SourceCode(stringToStreamReader(" 1.1.1 "));
             Lexer lexer = new Lexer(source);
             Token errorToken = getAllTokens(lexer).Find(token => token.tokenType == TokenType.ERROR);
             Assert.IsNotNull(errorToken);
@@ -156,22 +165,20 @@ namespace Logo
         [Test]
         public void TestValidBool()
         {
-            SourceCode source = new TextReader(" true false  ");
+            SourceCode source = new SourceCode(stringToStreamReader(" true false  "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[0];
-            Assert.AreEqual(TokenType.BOOL, token.tokenType);
-            Assert.AreEqual(true, token.boolValue);
+            Assert.AreEqual(TokenType.TRUE, token.tokenType);
             token = tokens[1];
-            Assert.AreEqual(TokenType.BOOL, token.tokenType);
-            Assert.AreEqual(false, token.boolValue);
+            Assert.AreEqual(TokenType.FALSE, token.tokenType);
             Assert.IsNotEmpty(token.ToString());
         }
 
         [Test]
         public void TestValidString()
         {
-            SourceCode source = new TextReader(" \"abc\" ");
+            SourceCode source = new SourceCode(stringToStreamReader(" \"abc\" "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[0];
@@ -182,7 +189,7 @@ namespace Logo
         [Test]
         public void TestValidString2()
         {
-            SourceCode source = new TextReader(" \"abc\\\\\\\" \"");
+            SourceCode source = new SourceCode(stringToStreamReader(" \"abc\\\\\\\" \""));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[0];
@@ -193,7 +200,7 @@ namespace Logo
         [Test]
         public void TestIdentifier()
         {
-            SourceCode source = new TextReader(" abc   ");
+            SourceCode source = new SourceCode(stringToStreamReader(" abc   "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[0];
@@ -202,7 +209,7 @@ namespace Logo
 
         [Test]
         public void TestKeyword() {
-            SourceCode source = new TextReader(" AND OR NOT if else while return true false int str float bool Turtle __  ");
+            SourceCode source = new SourceCode(stringToStreamReader(" AND OR NOT if else while return true false int str float bool Turtle __  "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             int i = 0;
@@ -213,8 +220,8 @@ namespace Logo
             Assert.AreEqual(TokenType.ELSE, tokens[i++].tokenType);
             Assert.AreEqual(TokenType.WHILE, tokens[i++].tokenType);
             Assert.AreEqual(TokenType.RETURN, tokens[i++].tokenType);
-            Assert.AreEqual(TokenType.BOOL, tokens[i++].tokenType);
-            Assert.AreEqual(TokenType.BOOL, tokens[i++].tokenType);
+            Assert.AreEqual(TokenType.TRUE, tokens[i++].tokenType);
+            Assert.AreEqual(TokenType.FALSE, tokens[i++].tokenType);
             Assert.AreEqual(TokenType.INT_T, tokens[i++].tokenType);
             Assert.AreEqual(TokenType.STR_T, tokens[i++].tokenType);
             Assert.AreEqual(TokenType.FLOAT_T, tokens[i++].tokenType);
@@ -225,11 +232,11 @@ namespace Logo
 
         [Test]
         public void TestIf() {
-            SourceCode source = new TextReader(" if a==b {" + newline +
+            SourceCode source = new SourceCode(stringToStreamReader(" if a==b {" + newline +
                 "a = a+1" + newline +
                 "} else { " + newline +
                 "b = b+1.5" + newline +
-                "}   ");
+                "}   "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             int i = 0;
@@ -262,9 +269,9 @@ namespace Logo
         [Test]
         public void TestLoop()
         {
-            SourceCode source = new TextReader(" while a<10 {" + newline +
+            SourceCode source = new SourceCode(stringToStreamReader(" while a<10 {" + newline +
                 "a = a+1" + newline +
-                "}   ");
+                "}   "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             int i = 0;

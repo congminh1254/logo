@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Logo.Core.Utils
 {
-    public class Position
+    public class Position: ICloneable
     {
-        public int line { get; set; }
-        public int column { get; set; }
+        public int line { get; private set; } = 0;
+        public int column { get; private set; } = -1;
 
         public Position(int line, int column)
         {
@@ -17,13 +17,17 @@ namespace Logo.Core.Utils
             this.column = column;
         }
 
-        public override string ToString()
+        public void nextLine()
         {
-            return "Position(line="+(line+1)+",column="+(column+1)+")";
+            line++;
+            column = -1;
         }
 
-        public int getLine() { return line+1; }
+        public void nextColumn() { column++; }
 
-        public int getColumn() { return column+1; }
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
     }
 }
