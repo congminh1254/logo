@@ -21,5 +21,10 @@ namespace Logo.Core.Utils
         {
             return c - '0';
         }
+
+        public static bool IsNumber(object value)
+        {
+            return value is int || value is float;
+        }
     }
 }
