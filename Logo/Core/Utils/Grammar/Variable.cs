@@ -6,18 +6,26 @@ using System.Threading.Tasks;
 
 namespace Logo.Core.Utils.Grammar
 {
+    public enum VariableType
+    {
+        INT,
+        FLOAT,
+        STR,
+        TURTLE,
+        BOOL
+    }
     public class Variable : IExpression
     {
         public string name;
-        public TokenType type;
+        public VariableType type;
         public object value;
-        public Variable(string name, TokenType type)
+        public Variable(string name, VariableType type)
         {
             this.name = name;
             this.type = type;
         }
 
-        public Variable(string name, TokenType type, object value) : this(name, type)
+        public Variable(string name, VariableType type, object value) : this(name, type)
         {
             this.value = value;
         }

@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Logo.Core.Utils.Grammar
 {
@@ -16,9 +12,9 @@ namespace Logo.Core.Utils.Grammar
     {
         public Token identifier;
         public List<DeclarationStatement> parameters;
-        public List<IStatement> body;
+        public BlockStatement body;
 
-        public FunctionStatement(Token identifier, List<DeclarationStatement> parameters, List<IStatement> body)
+        public FunctionStatement(Token identifier, List<DeclarationStatement> parameters, BlockStatement body)
         {
             this.identifier = identifier;
             this.parameters = parameters;
@@ -42,21 +38,11 @@ namespace Logo.Core.Utils.Grammar
                     setScopeVariableValue(newScope, scope, args[i++], statement.name);
                 }
             }
-
-            foreach (IStatement statement in body)
+            object returned = body.Execute(newScope);
+            if (returned is ReturnStatement)
             {
-                if (statement is ReturnStatement)
-                {
-                    object val = statement.Execute(newScope);
-                    return val;
-                }
-                object returned = statement.Execute(newScope);
-
-                if (returned is ReturnStatement)
-                {
-                    object val = ((ReturnStatement)returned).Execute(newScope);
-                    return val;
-                }
+                object val = ((ReturnStatement)returned).Execute(newScope);
+                return val;
             }
             // void with no return value
             return null;
@@ -68,11 +54,11 @@ namespace Logo.Core.Utils.Grammar
             var variableType = variable.type;
             var val = value.Evaluate(parentScope);
 
-            if ((val is string && variableType != TokenType.STR)
-                || (val is int && variableType != TokenType.STR)
-                || (val is float && variableType != TokenType.STR)
-                || (val is bool && variableType != TokenType.STR)
-                || (val is TurtleVar && variableType != TokenType.TURTLE))
+            if ((val is string && variableType != VariableType.STR)
+                || (val is int && variableType != VariableType.STR)
+                || (val is float && variableType != VariableType.STR)
+                || (val is bool && variableType != VariableType.STR)
+                || (val is TurtleVar && variableType != VariableType.TURTLE))
             {
                 ErrorHandling.pushError(new ErrorHandling.LogoException("New variable type is diffirence than the original type!"));
             }
@@ -111,12 +97,12 @@ namespace Logo.Core.Utils.Grammar
 
     public class DeclarationStatement : IStatement
     {
-        public TokenType variableType;
+        public VariableType variableType;
         public IExpression value;
         public string name;
         public bool isParameter;
         public Position position;
-        public DeclarationStatement(TokenType variableType, IExpression value, string name, Position pos, bool isParameter)
+        public DeclarationStatement(VariableType variableType, IExpression value, string name, Position pos, bool isParameter)
         {
             this.variableType = variableType;
             this.value = value;
@@ -129,12 +115,12 @@ namespace Logo.Core.Utils.Grammar
         {
             scope.putVariable(new Variable(this));
 
-            if (variableType == TokenType.TURTLE)
+            if (variableType == VariableType.TURTLE)
             {
                 object val = value.Evaluate(scope);
                 if (val is TurtleVar)
                 {
-                    scope.putVariable(new Variable(name, TokenType.TURTLE, val));
+                    scope.putVariable(new Variable(name, VariableType.TURTLE, val));
                 }
             }
             if (value != null)
@@ -143,21 +129,21 @@ namespace Logo.Core.Utils.Grammar
                 if (val is Literal)
                 {
                     object val2 = ((Literal)val).value;
-                    if ((val2 is string && variableType != TokenType.STR)
-                        || (val2 is int && variableType != TokenType.INT)
-                        || (val2 is float && variableType != TokenType.FLOAT)
-                        || (val2 is bool && (variableType != TokenType.TRUE && variableType != TokenType.FALSE))
-                        || (val2 is TurtleVar && variableType != TokenType.TURTLE))
+                    if ((val2 is string && variableType != VariableType.STR)
+                        || (val2 is int && variableType != VariableType.INT)
+                        || (val2 is float && variableType != VariableType.FLOAT)
+                        || (val2 is bool && variableType != VariableType.BOOL)
+                        || (val2 is TurtleVar && variableType != VariableType.TURTLE))
                     {
                         ErrorHandling.pushError(new ErrorHandling.LogoException("New variable type is diffirence than the original type!", position));
                     }
                     scope.putVariable(new Variable(name, variableType, val2));
                 }
-                if ((val is string && variableType != TokenType.STR)
-                        || (val is int && variableType != TokenType.INT)
-                        || (val is float && variableType != TokenType.FLOAT)
-                        || (val is bool && (variableType != TokenType.TRUE && variableType != TokenType.FALSE))
-                        || (val is TurtleVar && variableType != TokenType.TURTLE))
+                if ((val is string && variableType != VariableType.STR)
+                        || (val is int && variableType != VariableType.INT)
+                        || (val is float && variableType != VariableType.FLOAT)
+                        || (val is bool && variableType != VariableType.BOOL)
+                        || (val is TurtleVar && variableType != VariableType.TURTLE))
                 {
                     ErrorHandling.pushError(new ErrorHandling.LogoException("New variable type is diffirence than the original type!", position));
                 }
@@ -170,12 +156,10 @@ namespace Logo.Core.Utils.Grammar
     public class ReturnStatement : IStatement
     {
         public IExpression expression;
-        Token token;
 
-        public ReturnStatement(IExpression expression, Token token)
+        public ReturnStatement(IExpression expression)
         {
             this.expression = expression;
-            this.token = token;
         }
 
         public object Execute(Scope scope)
@@ -198,14 +182,14 @@ namespace Logo.Core.Utils.Grammar
         public object Execute(Scope scope)
         {
             Variable variable = scope.getVariable(this.variable);
-            TokenType variableType = variable.type;
+            VariableType variableType = variable.type;
             object val = this.expression.Evaluate(scope);
 
-            if ((val is string && variableType != TokenType.STR)
-                        || (val is int && variableType != TokenType.INT)
-                        || (val is float && variableType != TokenType.FLOAT)
-                        || (val is bool && (variableType != TokenType.TRUE && variableType != TokenType.FALSE))
-                        || (val is TurtleVar && variableType != TokenType.TURTLE))
+            if ((val is string && variableType != VariableType.STR)
+                        || (val is int && variableType != VariableType.INT)
+                        || (val is float && variableType != VariableType.FLOAT)
+                        || (val is bool && variableType != VariableType.BOOL)
+                        || (val is TurtleVar && variableType != VariableType.TURTLE))
             {
                 ErrorHandling.pushError(new ErrorHandling.LogoException("New variable type is diffirence than the original type!"));
             }
@@ -218,10 +202,10 @@ namespace Logo.Core.Utils.Grammar
     public class IfStatement : IStatement
     {
         public IExpression condition;
-        public List<IStatement> body;
-        public List<IStatement> elseBody;
+        public IStatement body;
+        public IStatement elseBody;
 
-        public IfStatement(IExpression condition, List<IStatement> body, List<IStatement> elseBody)
+        public IfStatement(IExpression condition, IStatement body, IStatement elseBody)
         {
             this.condition = condition;
             this.body = body;
@@ -232,26 +216,20 @@ namespace Logo.Core.Utils.Grammar
         {
             if ((bool)condition.Evaluate(scope))
             {
-                foreach (IStatement statement in body)
+                object returned = body.Execute(scope);
+                if (returned is ReturnStatement)
                 {
-                    if (statement is ReturnStatement)
-                    {
-                        return statement;
-                    }
-                    statement.Execute(scope);
+                    return returned;
                 }
             }
             else
             {
                 if (elseBody != null)
                 {
-                    foreach (IStatement statement in elseBody)
+                    object returned = elseBody.Execute(scope);
+                    if (returned is ReturnStatement)
                     {
-                        if (statement is ReturnStatement)
-                        {
-                            return statement;
-                        }
-                        statement.Execute(scope);
+                        return returned;
                     }
                 }
             }
@@ -262,9 +240,9 @@ namespace Logo.Core.Utils.Grammar
     public class WhileStatement : IStatement
     {
         public IExpression condition;
-        public List<IStatement> body;
+        public IStatement body;
 
-        public WhileStatement(IExpression condition, List<IStatement> body)
+        public WhileStatement(IExpression condition, IStatement body)
         {
             this.condition = condition;
             this.body = body;
@@ -274,14 +252,34 @@ namespace Logo.Core.Utils.Grammar
         {
             while ((bool)condition.Evaluate(scope))
             {
-                foreach (IStatement statement in body)
+                object returned = body.Execute(scope);
+                if (returned is ReturnStatement)
                 {
-                    if (statement is ReturnStatement)
-                    {
-                        return statement;
-                    }
-                    statement.Execute(scope);
+                    return returned;
                 }
+            }
+            return null;
+        }
+    }
+
+    public class BlockStatement : IStatement
+    {
+        public List<IStatement> statements;
+
+        public BlockStatement(List<IStatement> statements)
+        {
+            this.statements = statements;
+        }
+
+        public object Execute(Scope scope)
+        {
+            foreach (IStatement statement in statements)
+            {
+                if (statement is ReturnStatement)
+                {
+                    return statement;
+                }
+                statement.Execute(scope);
             }
             return null;
         }

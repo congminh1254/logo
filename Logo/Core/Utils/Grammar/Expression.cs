@@ -38,54 +38,16 @@ namespace Logo.Core.Utils.Grammar
         }
     }
 
-    public abstract class Turtle: Literal
-    {
-        public Turtle(object value, Token token) : base(value, token) { }
-    }
-
-    public abstract class Binary : IExpression
+    public class AndExpresstion : IExpression
     {
         public IExpression left;
         public IExpression right;
-        public Token op;
 
-        public Binary(IExpression left, IExpression right, Token op)
+        public AndExpresstion(IExpression left, IExpression right, Position position)
         {
             this.left = left;
             this.right = right;
-            this.op = op;
         }
-
-        public object Evaluate(Scope score)
-        {
-            return null;
-        }
-    }
-
-    public abstract class Unary : IExpression
-    {
-        public IExpression right;
-        public Token op;
-
-        public Unary(IExpression right, Token op)
-        {
-            this.right = right;
-            this.op = op;
-        }
-        public object Evaluate(Scope score)
-        {
-            return null;
-        }
-    }
-
-    //public abstract class AdditiveExpression : Binary
-    //{
-    //    public AdditiveExpression(IExpression left, IExpression right, Token op) : base(left, right, op) { }
-    //}
-
-    public class AndExpresstion : Binary
-    {
-        public AndExpresstion(IExpression left, IExpression right, Token op) : base(left, right, op) { }
 
         public object Evaluate(Scope scope)
         {
@@ -101,15 +63,30 @@ namespace Logo.Core.Utils.Grammar
         }
     }
 
-    public class Comparison : Binary
+    public class Comparison : IExpression
     {
-        public Comparison(IExpression left, IExpression right, Token op) : base(left, right, op) { }
+        public IExpression left, right;
+        public Position position;
+        public enum ComparisonType
+        {
+            GE,
+            LE,
+            GT,
+            LT
+        }
+        public ComparisonType type;
+        public Comparison(IExpression left, IExpression right, ComparisonType type, Position position)
+        {
+            this.left = left;
+            this.right = right;
+            this.type = type;
+            this.position = position;
+        }
 
         public object Evaluate(Scope scope)
         {
             object left = this.left.Evaluate(scope);
             object right = this.right.Evaluate(scope);
-            TokenType opType = this.op.tokenType;
 
             if (Utils.IsNumber(left) && Utils.IsNumber(right))
             {
@@ -118,39 +95,41 @@ namespace Logo.Core.Utils.Grammar
 
                 bool equals = (leftValue == rightValue);
                 bool leftIsLessThanRight = (leftValue < rightValue);
-                return compare(equals, leftIsLessThanRight, opType);
+                return compare(equals, leftIsLessThanRight, type);
             }
 
-            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not compare!!", op.position));
+            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not compare!!", position));
             return null;
         }
 
-        bool compare(bool equals, bool leftIsLessThanRight, TokenType tokenType)
+        bool compare(bool equals, bool leftIsLessThanRight, ComparisonType tokenType)
         {
-            if (tokenType == TokenType.LT && leftIsLessThanRight && !equals)
+            if (tokenType == ComparisonType.LT && leftIsLessThanRight && !equals)
             {
                 return true;
             }
-            if (tokenType == TokenType.GT && !leftIsLessThanRight && !equals)
+            if (tokenType == ComparisonType.GT && !leftIsLessThanRight && !equals)
             {
                 return true;
             }
-            if (tokenType == TokenType.LE && (leftIsLessThanRight || equals))
+            if (tokenType == ComparisonType.LE && (leftIsLessThanRight || equals))
             {
                 return true;
             }
-            return tokenType == TokenType.GE && (!leftIsLessThanRight || equals);
+            return tokenType == ComparisonType.GE && (!leftIsLessThanRight || equals);
         }
     }
 
-    public abstract class Multiplicative : Binary
+    public class Multiplication : IExpression
     {
-        public Multiplicative(IExpression left, IExpression right, Token op) : base(left, right, op) { }
-    }
-
-    public class Multiplication : Multiplicative
-    {
-        public Multiplication(IExpression left, IExpression right, Token op) : base(left, right, op) { }
+        public IExpression left, right;
+        public Position position;
+        public Multiplication(IExpression left, IExpression right, Position position)
+        {
+            this.left = left;
+            this.right = right;
+            this.position = position;
+        }
         public object Evaluate(Scope scope)
         {
             object left = this.left.Evaluate(scope);
@@ -161,14 +140,21 @@ namespace Logo.Core.Utils.Grammar
                     return (float)left * (float)right;
                 return (int)left * (int)right;
             }
-            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not multiplication this two value", op.position));
+            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not multiplication this two value", position));
             return null;
         }
     }
 
-    public class Division : Multiplicative
+    public class Division : IExpression
     {
-        public Division(IExpression left, IExpression right, Token op) : base(left, right, op) { }
+        public IExpression left, right;
+        public Position position;
+        public Division(IExpression left, IExpression right, Position position)
+        {
+            this.left = left;
+            this.right = right;
+            this.position = position;
+        }
 
         public object Evaluate(Scope scope)
         {
@@ -178,14 +164,21 @@ namespace Logo.Core.Utils.Grammar
             {
                 return (float)left / (float)right;
             }
-            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not divide this two value", op.position));
+            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not divide this two value", position));
             return null;
         }
     }
 
-    public class Modulo : Multiplicative
+    public class Modulo : IExpression
     {
-        public Modulo(IExpression left, IExpression right, Token op) : base(left, right, op) { }
+        public IExpression left, right;
+        public Position position;
+        public Modulo(IExpression left, IExpression right, Position position)
+        {
+            this.left = left;
+            this.right = right;
+            this.position = position;
+        }
 
         public object Evaluate(Scope scope)
         {
@@ -195,20 +188,35 @@ namespace Logo.Core.Utils.Grammar
             {
                 return (float)left % (float)right;
             }
-            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not divide this two value", op.position));
+            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not divide this two value", position));
             return null;
         }
     }
 
-    public class Equality : Binary
+    public class Equality : IExpression
     {
-        public Equality(IExpression left, IExpression right, Token op) : base(left, right, op) { }
+        public enum EqualityType
+        {
+            DIFF,
+            EQUAL
+        }
+        public IExpression left, right;
+        public Position position;
+        public EqualityType type;
+
+        public Equality(IExpression left, IExpression right, EqualityType type, Position position)
+        {
+            this.left = left;
+            this.right = right;
+            this.type = type;
+            this.position = position;
+        }
 
         public object Evaluate(Scope scope)
         {
             object left = this.left.Evaluate(scope);
             object right = this.right.Evaluate(scope);
-            bool checkingEqual = op.tokenType == TokenType.EQEQ;
+            bool checkingEqual = type == EqualityType.EQUAL;
             if (left is bool && right is bool)
             {
                 return checkingEqual == ((bool)left == (bool)right);
@@ -221,7 +229,7 @@ namespace Logo.Core.Utils.Grammar
             {
                 return checkingEqual == ((string)left).Equals(right);
             }
-            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not compare two data type", op.position));
+            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not compare two data type", position));
             return null;
         }
     }
@@ -270,9 +278,15 @@ namespace Logo.Core.Utils.Grammar
         }
     }
 
-    public class Negation : Unary
+    public class Negation : IExpression
     {
-        public Negation(IExpression right, Token op) : base(right, op) { }
+        public IExpression right;
+        public Position position;
+        public Negation(IExpression right, Position position)
+        {
+            this.right = right;
+            this.position = position;
+        }
 
         public object Evaluate(Scope scope)
         {
@@ -286,14 +300,20 @@ namespace Logo.Core.Utils.Grammar
             }
             if (right is bool)
                 return !(bool)right;
-            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not negate this variable!", op.position));
+            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not negate this variable!", position));
             return null;
         }
     }
 
-    public class NotExpression : Unary
+    public class NotExpression : IExpression
     {
-        public NotExpression(IExpression right, Token op) : base(right, op) { }
+        public IExpression right;
+        public Position position;
+        public NotExpression(IExpression right, Position position)
+        {
+            this.right = right;
+            this.position = position;
+        }
 
         public object Evaluate(Scope scope)
         {
@@ -303,14 +323,21 @@ namespace Logo.Core.Utils.Grammar
             {
                 return !(bool)right;
             }
-            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not negate this variable!", op.position));
+            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not negate this variable!", position));
             return null;
         }
     }
 
-    public class Or : Binary
+    public class Or : IExpression
     {
-        public Or(IExpression left, IExpression right, Token op) : base(left, right, op) { }
+        public IExpression left, right;
+        public Position position;
+        public Or(IExpression left, IExpression right, Position position)
+        {
+            this.left = left;
+            this.right = right;
+            this.position = position;
+        }
 
         public object Evaluate(Scope scope)
         {
@@ -320,14 +347,21 @@ namespace Logo.Core.Utils.Grammar
             {
                 return (bool)left || (bool)right;
             }
-            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not use OR operator with these variables!", op.position));
+            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not use OR operator with these variables!", position));
             return null;
         }
     }
 
-    public class Subtract : Binary
+    public class Subtract : IExpression
     {
-        public Subtract(IExpression left, IExpression right, Token op) : base(left, right, op) { }
+        public IExpression left, right;
+        public Position position;
+        public Subtract(IExpression left, IExpression right, Position position)
+        {
+            this.left = left;
+            this.right = right;
+            this.position = position;
+        }
 
         public object Evaluate(Scope scope)
         {
@@ -337,14 +371,21 @@ namespace Logo.Core.Utils.Grammar
             {
                 return (float)left - (float)right;
             }
-            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not use subtract operator with these variables!", op.position));
+            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not use subtract operator with these variables!", position));
             return null;
         }
     }
 
-    public class Sum : Binary
+    public class Sum : IExpression
     {
-        public Sum(IExpression left, IExpression right, Token op) : base(left, right, op) { }
+        public IExpression left, right;
+        public Position position;
+        public Sum(IExpression left, IExpression right, Position position)
+        {
+            this.left = left;
+            this.right = right;
+            this.position = position;
+        }
 
         public object Evaluate(Scope scope)
         {
@@ -354,7 +395,7 @@ namespace Logo.Core.Utils.Grammar
             {
                 return (float)left + (float)right;
             }
-            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not use sum operator with these variables!", op.position));
+            ErrorHandling.pushError(new ErrorHandling.LogoException("Can not use sum operator with these variables!", position));
             return null;
         }
     }

@@ -28,7 +28,7 @@ namespace Logo.Core.Utils
                 return "message="+message+", position="+position.ToString();
             }
         }
-
+        
         public static List<LogoException> exceptions { get; private set; } = new List<LogoException>();
 
         public static void pushError(LogoException e, bool throwError = false)

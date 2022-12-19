@@ -22,7 +22,7 @@ namespace Logo
             Parser parser = new Parser(lexer);
 
             var result = parser.parse();
-            return result["main"].body;
+            return ((BlockStatement)result["main"].body).statements;
         }
 
         [Test]
@@ -42,13 +42,13 @@ namespace Logo
             Assert.AreEqual(identifier.textValue, "plus");
             Assert.AreEqual(parameters[0].name, "a");
             Assert.AreEqual(parameters[1].name, "b");
-            Assert.AreEqual(parameters[0].variableType, TokenType.INT_T);
-            Assert.AreEqual(parameters[1].variableType, TokenType.FLOAT_T);
+            Assert.AreEqual(parameters[0].variableType, VariableType.INT);
+            Assert.AreEqual(parameters[1].variableType, VariableType.FLOAT);
 
-            Assert.AreEqual(body.Count, 1);
-            Assert.IsTrue(body[0] is ReturnStatement);
+            Assert.AreEqual(((BlockStatement)body).statements.Count, 1);
+            Assert.IsTrue(((BlockStatement)body).statements[0] is ReturnStatement);
 
-            var ret = (ReturnStatement)body[0];
+            var ret = (ReturnStatement)((BlockStatement)body).statements[0];
             Assert.IsTrue(ret.expression is Sum);
             var exp = (Sum)ret.expression;
             Assert.IsTrue(exp.left is Identifier);
@@ -73,15 +73,15 @@ namespace Logo
             Assert.IsTrue(((Comparison)cond).left is Identifier);
             Assert.IsTrue(((Comparison)cond).right is Literal);
 
-            Assert.AreEqual(body.Count, 1);
-            Assert.AreEqual(elsebody.Count, 1);
-            Assert.IsTrue(body[0] is AssignStatement);
-            Assert.IsTrue(elsebody[0] is ReturnStatement);
+            Assert.AreEqual(((BlockStatement)body).statements.Count, 1);
+            Assert.AreEqual(((BlockStatement)elsebody).statements.Count, 1);
+            Assert.IsTrue(((BlockStatement)body).statements[0] is AssignStatement);
+            Assert.IsTrue(((BlockStatement)elsebody).statements[0] is ReturnStatement);
 
-            AssignStatement stat1 = (AssignStatement)body[0];
+            AssignStatement stat1 = (AssignStatement)((BlockStatement)body).statements[0];
             Assert.AreEqual(stat1.variable, "a");
             Assert.IsTrue(stat1.expression is Sum);
-            ReturnStatement stat2 = (ReturnStatement)elsebody[0];
+            ReturnStatement stat2 = (ReturnStatement)((BlockStatement)elsebody).statements[0];
             Assert.IsTrue(stat2.expression is Sum);
         }
 
@@ -95,7 +95,7 @@ namespace Logo
             var statement = statements[0];
             Assert.IsTrue(statement is WhileStatement);
 
-            Assert.AreEqual(((WhileStatement)statement).body.Count, 1);
+            Assert.AreEqual(((BlockStatement)((WhileStatement)statement).body).statements.Count, 1);
         }
 
         [Test]
@@ -123,21 +123,23 @@ namespace Logo
             Assert.IsTrue(((IfStatement)statement).condition is Or);
 
             Or condition = (Or)((IfStatement)statement).condition;
-            Binary cl = (Binary)condition.left;
-            Unary cr = (Unary)condition.right;
-            Assert.IsTrue(cl is AndExpresstion);
-            Assert.IsTrue(cr is NotExpression);
-            Assert.AreEqual(condition.op.tokenType, TokenType.OR);
-            Binary cll = (Binary)cl.left;
-            Binary clr = (Binary)cl.right;
-            Assert.IsTrue(cll is Comparison);
-            Assert.IsTrue(clr is Equality);
-            Binary crr = (Binary)cr.right;
-            Assert.IsTrue(crr is Or);
-            Binary crrl = (Binary)crr.left;
-            Binary crrr = (Binary)crr.right;
-            Assert.IsTrue(crrl is Comparison);
-            Assert.IsTrue(crrr is Comparison);
+            Assert.IsTrue(condition.left is AndExpresstion);
+            Assert.IsTrue(condition.right is NotExpression);
+            AndExpresstion cl = (AndExpresstion)condition.left;
+            NotExpression cr = (NotExpression)condition.right;
+
+            Assert.IsTrue(cl.left is Comparison);
+            Assert.IsTrue(cl.right is Equality);
+            Comparison cll = (Comparison)cl.left;
+            Equality clr = (Equality)cl.right;
+
+            Assert.IsTrue(cr.right is Or);
+            Or crr = (Or)cr.right;
+
+            Assert.IsTrue(crr.left is Comparison);
+            Assert.IsTrue(crr.right is Comparison);
+            Comparison crrl = (Comparison)crr.left;
+            Comparison crrr = (Comparison)crr.right;
         }
 
         [Test]
@@ -159,19 +161,20 @@ namespace Logo
             Assert.AreEqual(statements.Count, 1);
             var statement = statements[0];
             Assert.IsTrue(statement is AssignStatement);
-            Binary op = (Binary)((AssignStatement)statement).expression;
-            Binary ol = (Binary)op.left;
-            Assert.IsTrue(op is Modulo);
-            Assert.IsTrue(ol is Division);
+
+            Assert.IsTrue(((AssignStatement)statement).expression is Modulo);
+            Modulo op = (Modulo)((AssignStatement)statement).expression;
+            Assert.IsTrue(op.left is Division);
+            Division ol = (Division)op.left;
             Assert.IsTrue(op.right is Literal);
 
-            Binary oll = (Binary)ol.left;
-            Binary olll = (Binary)oll.left;
-            Assert.IsTrue(oll is Subtract);
+            Assert.IsTrue(ol.left is Subtract);
+            Subtract oll = (Subtract)ol.left;
             Assert.IsTrue(oll.left is Sum);
             Assert.IsTrue(oll.right is Literal);
 
-            Assert.IsTrue(olll is Sum);
+            Assert.IsTrue(oll.left is Sum);
+            Sum olll = (Sum)oll.left;
             Assert.IsTrue(olll.left is Literal);
             Assert.IsTrue(olll.right is Multiplication);
         }
