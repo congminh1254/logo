@@ -189,6 +189,12 @@ namespace Logo.Core.Utils.Grammar
         public IExpression expression;
         public string variable;
 
+        public AssignStatement(IExpression expression, string variable)
+        {
+            this.expression = expression;
+            this.variable = variable;
+        }
+
         public object Execute(Scope scope)
         {
             Variable variable = scope.getVariable(this.variable);

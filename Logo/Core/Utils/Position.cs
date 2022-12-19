@@ -29,5 +29,10 @@ namespace Logo.Core.Utils
         {
             return this.MemberwiseClone();
         }
+
+        public string ToString()
+        {
+            return string.Format("[{0}:{1}]", line + 1, column + 1);
+        }
     }
 }

@@ -22,13 +22,22 @@ namespace Logo.Core.Utils
                 this.message = message;
                 this.position = position;
             }
+
+            public string ToString()
+            {
+                return "message="+message+", position="+position.ToString();
+            }
         }
 
-        public static List<LogoException> exceptions = new List<LogoException>();
+        public static List<LogoException> exceptions { get; private set; } = new List<LogoException>();
 
-        public static void pushError(LogoException e)
+        public static void pushError(LogoException e, bool throwError = false)
         {
             exceptions.Add(e);
+            if (throwError )
+            {
+                throw new Exception(e.ToString());
+            }
         }
     }
 }

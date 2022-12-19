@@ -25,6 +25,10 @@ namespace Logo.Core
         {
             currentToken = nextToken;
             nextToken = lexer.advanceToken();
+            while (currentToken.tokenType == TokenType.NL && nextToken.tokenType == TokenType.NL)
+            {
+                nextToken = lexer.advanceToken();
+            }
             return currentToken;
         }
 
@@ -55,6 +59,17 @@ namespace Logo.Core
             return token;
         }
 
+        bool skipNLToken()
+        {
+            bool skipped = false;
+            while (peekToken() == TokenType.NL)
+            {
+                advanceToken();
+                skipped = true;
+            }
+            return skipped;
+        }
+
         Token acceptToken(Token token, TokenType expectedType)
         {
             if (expectedType != token.tokenType)
@@ -66,13 +81,19 @@ namespace Logo.Core
 
         public Dictionary<string, FunctionStatement> parse()
         {
-            while (lexer.advanceToken().tokenType != TokenType.EOF)
+            while (peekToken() != TokenType.EOF)
             {
+                skipNLToken();
                 FunctionStatement func = parseFunction();
-                if (functions[func.identifier.textValue] != null)
+                if (functions.ContainsKey(func.identifier.textValue))
                 {
                     ErrorHandling.pushError(new ErrorHandling.LogoException("Function " + func.identifier.textValue + " already defined!", func.identifier.position));
                 }
+                else
+                {
+                    functions[func.identifier.textValue] = func;
+                }
+                skipNLToken();
             }
             return functions;
         }
@@ -92,16 +113,12 @@ namespace Logo.Core
                 }
             }
             acceptAdvanceToken(new TokenType[] { TokenType.RPAREN });
-            acceptAdvanceToken(new TokenType[] { TokenType.NL });
             acceptAdvanceToken(new TokenType[] { TokenType.LCURLY });
-
+            skipNLToken();
             List<IStatement> statements = parseFunctionBody();
-            while (peekToken() == TokenType.NL)
-            {
-                acceptAdvanceToken(new TokenType[] { TokenType.NL });
-            }
-            acceptAdvanceToken(new TokenType[] { TokenType.NL });
-
+            skipNLToken();
+            acceptAdvanceToken(new TokenType[] { TokenType.RCURLY });
+            skipNLToken();
             return new FunctionStatement(identifier, vars, statements);
         }
 
@@ -110,7 +127,9 @@ namespace Logo.Core
             List<IStatement> result = new List<IStatement>();
             while (peekToken() != TokenType.RCURLY)
             {
+                skipNLToken();
                 result.Add(parseStatement());
+                skipNLToken();
             }
             return result;
         }
@@ -126,17 +145,23 @@ namespace Logo.Core
                         acceptAdvanceToken(new TokenType[] { TokenType.LPAREN });
                         List<IExpression> args = parseFunctionCallArgs();
                         acceptAdvanceToken(new TokenType[] { TokenType.RPAREN });
-                        acceptAdvanceToken(new TokenType[] { TokenType.NL });
+                        skipNLToken();
                         return new FunctionCallStatement(token.textValue, args);
                     }
-                    break;
+                    else
+                    {
+                        acceptAdvanceToken(new TokenType[] { TokenType.EQ });
+                        IExpression expr = parseExpression();
+                        skipNLToken();
+                        return new AssignStatement(expr, token.textValue);
+                    }
                 case TokenType.IF:
                     return parseIf();
                 case TokenType.WHILE:
                     return parseWhile();
                 case TokenType.RETURN:
-                    IExpression exp = parseIExpression();
-                    acceptAdvanceToken(new TokenType[] { TokenType.NL });
+                    IExpression exp = parseExpression();
+                    skipNLToken();
                     return new ReturnStatement(exp, token);
                 default:
                     ErrorHandling.pushError(new ErrorHandling.LogoException("Unexpected token " + token.tokenType, token.position));
@@ -147,8 +172,8 @@ namespace Logo.Core
 
         IStatement parseWhile()
         {
-            IExpression condition = parseIExpression();
-            acceptAdvanceToken(new TokenType[] { TokenType.NL });
+            IExpression condition = parseExpression();
+            skipNLToken();
             acceptAdvanceToken(new TokenType[] { TokenType.LCURLY });
             List<IStatement> body = parseFunctionBody();
             acceptAdvanceToken(new TokenType[] { TokenType.RCURLY });
@@ -165,25 +190,27 @@ namespace Logo.Core
 
         IfStatement parseIf()
         {
-            IExpression condition = parseIExpression();
+            IExpression condition = parseExpression();
             acceptAdvanceToken(new TokenType[] { TokenType.LCURLY });
-            List<IStatement> body = new List<IStatement>();
+            skipNLToken();
+            List<IStatement> body = parseFunctionBody();
             List<IStatement> elseBody = new List<IStatement>();
+            skipNLToken();
             acceptAdvanceToken(new TokenType[] { TokenType.RCURLY });
-            acceptAdvanceToken(new TokenType[] { TokenType.NL });
             if (peekToken() == TokenType.ELSE)
             {
                 acceptAdvanceToken(new TokenType[] { TokenType.ELSE });
-                acceptAdvanceToken(new TokenType[] { TokenType.NL });
                 acceptAdvanceToken(new TokenType[] { TokenType.LCURLY });
+                skipNLToken();
                 elseBody = parseFunctionBody();
+                skipNLToken();
                 acceptAdvanceToken(new TokenType[] { TokenType.RCURLY });
-                acceptAdvanceToken(new TokenType[] { TokenType.NL });
             }
+            skipNLToken();
             return new IfStatement(condition, body, elseBody);
         }
 
-        IExpression parseIExpression()
+        IExpression parseExpression()
         {
             return parseOr();
         }
@@ -207,7 +234,7 @@ namespace Logo.Core
             {
                 Token token = acceptAdvanceToken(new TokenType[] { TokenType.AND });
                 IExpression right = parseEqual();
-                expr = new Or(expr, right, token);
+                expr = new AndExpresstion(expr, right, token);
             }
             return expr;
         }
@@ -219,7 +246,7 @@ namespace Logo.Core
             {
                 Token token = acceptAdvanceToken(new TokenType[] { TokenType.EQEQ, TokenType.DIFF });
                 IExpression right = parseComparison();
-                expr = new Or(expr, right, token);
+                expr = new Equality(expr, right, token);
             }
             return expr;
         }
@@ -236,7 +263,7 @@ namespace Logo.Core
             return expr;
         }
 
-        IExpression parseAdditiveExpr()
+        IExpression parseMultiplicative()
         {
             IExpression expr = parseUnary();
             while (peekToken() == TokenType.DIV || peekToken() == TokenType.MOD || peekToken() == TokenType.MUL)
@@ -253,7 +280,26 @@ namespace Logo.Core
                 }
                 else if (token.tokenType == TokenType.MOD)
                 {
-                    expr = new Division(expr, right, token);
+                    expr = new Modulo(expr, right, token);
+                }
+            }
+            return expr;
+        }
+
+        IExpression parseAdditiveExpr()
+        {
+            IExpression expr = parseMultiplicative();
+            while (peekToken() == TokenType.PLUS || peekToken() == TokenType.MINUS)
+            {
+                Token token = acceptAdvanceToken(new TokenType[] { TokenType.PLUS, TokenType.MINUS });
+                IExpression right = parseMultiplicative();
+                if (token.tokenType == TokenType.PLUS)
+                {
+                    expr = new Sum(expr, right, token);
+                }
+                else
+                {
+                    expr = new Subtract(expr, right, token);
                 }
             }
             return expr;
@@ -265,7 +311,7 @@ namespace Logo.Core
             {
                 Token token = acceptAdvanceToken(new TokenType[] { TokenType.NOT });
                 IExpression expr = parseBasicExpr();
-                return new Not(expr, token);
+                return new NotExpression(expr, token);
             }
             else if (peekToken() == TokenType.MINUS)
             {
@@ -281,6 +327,11 @@ namespace Logo.Core
             Token token;
             switch (peekToken())
             {
+                case TokenType.TURTLE:
+                    token = acceptAdvanceToken(new TokenType[] { TokenType.TURTLE });
+                    acceptAdvanceToken(new TokenType[] { TokenType.LPAREN });
+                    acceptAdvanceToken(new TokenType[] { TokenType.RPAREN });
+                    return new Literal(new TurtleVar(), token);
                 case TokenType.LPAREN:
                     acceptAdvanceToken(new TokenType[] { TokenType.LPAREN });
                     IExpression expr = parseOr();
@@ -325,11 +376,11 @@ namespace Logo.Core
             {
                 return args;
             }
-            args.Add(parseIExpression());
+            args.Add(parseExpression());
             while (peekToken() == TokenType.COMMA)
             {
                 acceptAdvanceToken(new TokenType[] { TokenType.COMMA });
-                args.Add(parseIExpression());
+                args.Add(parseExpression());
             }
             return args;
         }
