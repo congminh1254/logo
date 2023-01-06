@@ -22,7 +22,19 @@ namespace Logo
 
         private void FormMain_Load(object sender, EventArgs e)
         {
+            //string filename = "./ExampleCode/Example_02.txt";
+            //using (var reader = new StreamReader(filename))
+            //{
+            //    SourceCode source = new SourceCode(reader);
+            //    Lexer lexer = new Lexer(source);
+            //    Parser parser = new Parser(lexer);
+            //    var function = parser.parse();
+            //}
+            string code = "main() {\r\n     if a<b AND c==d OR NOT (a > 0 OR a > 3) {\r\n    return 0\r\n    }\r\n    \r\n    }";
+            Lexer lexer = new Lexer(new SourceCode(Utils.stringToStreamReader(code)));
+            Parser parser = new Parser(lexer);
 
+            var result = parser.parse();
         }
     }
 }

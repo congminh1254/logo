@@ -26,13 +26,6 @@ namespace Logo
             return tokens;
         }
 
-        StreamReader stringToStreamReader(string s)
-        {
-            byte[] byteArray = Encoding.ASCII.GetBytes(s);
-            MemoryStream stream = new MemoryStream(byteArray);
-            return new StreamReader(stream);
-        }
-
         [Test]
         public void TestSourceCode()
         {
@@ -109,7 +102,7 @@ namespace Logo
         [Test]
         public void TestInvalidString()
         {
-            SourceCode source = new SourceCode(stringToStreamReader(" \"absdfsf   "));
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" \"absdfsf   "));
             Lexer lexer = new Lexer(source);
             Token errorToken = getAllTokens(lexer).Find(token => token.tokenType == TokenType.ERROR);
             Assert.IsNotNull(errorToken);
@@ -119,7 +112,7 @@ namespace Logo
         [Test]
         public void TestValidIntNumber()
         {
-            SourceCode source = new SourceCode(stringToStreamReader(" 1   "));
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" 1   "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[0];
@@ -131,7 +124,7 @@ namespace Logo
         [Test]
         public void TestValidFloatNumber()
         {
-            SourceCode source = new SourceCode(stringToStreamReader(" 1.75 3.567  "));
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" 1.75 3.567  "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[0];
@@ -145,7 +138,7 @@ namespace Logo
         [Test]
         public void TestInvalidNumber()
         {
-            SourceCode source = new SourceCode(stringToStreamReader(" 1. "));
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" 1. "));
             Lexer lexer = new Lexer(source);
             Token errorToken = getAllTokens(lexer).Find(token => token.tokenType == TokenType.ERROR);
             Assert.IsNotNull(errorToken);
@@ -155,7 +148,7 @@ namespace Logo
         [Test]
         public void TestInvalidNumber2()
         {
-            SourceCode source = new SourceCode(stringToStreamReader(" 1.1.1 "));
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" 1.1.1 "));
             Lexer lexer = new Lexer(source);
             Token errorToken = getAllTokens(lexer).Find(token => token.tokenType == TokenType.ERROR);
             Assert.IsNotNull(errorToken);
@@ -165,7 +158,7 @@ namespace Logo
         [Test]
         public void TestValidBool()
         {
-            SourceCode source = new SourceCode(stringToStreamReader(" true false  "));
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" true false  "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[0];
@@ -178,7 +171,7 @@ namespace Logo
         [Test]
         public void TestValidString()
         {
-            SourceCode source = new SourceCode(stringToStreamReader(" \"abc\" "));
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" \"abc\" "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[0];
@@ -189,7 +182,7 @@ namespace Logo
         [Test]
         public void TestValidString2()
         {
-            SourceCode source = new SourceCode(stringToStreamReader(" \"abc\\\\\\\" \""));
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" \"abc\\\\\\\" \""));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[0];
@@ -200,7 +193,7 @@ namespace Logo
         [Test]
         public void TestIdentifier()
         {
-            SourceCode source = new SourceCode(stringToStreamReader(" abc   "));
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" abc   "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             Token token = tokens[0];
@@ -209,7 +202,7 @@ namespace Logo
 
         [Test]
         public void TestKeyword() {
-            SourceCode source = new SourceCode(stringToStreamReader(" AND OR NOT if else while return true false int str float bool Turtle __  "));
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" AND OR NOT if else while return true false int str float bool Turtle __  "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             int i = 0;
@@ -232,7 +225,7 @@ namespace Logo
 
         [Test]
         public void TestIf() {
-            SourceCode source = new SourceCode(stringToStreamReader(" if a==b {" + newline +
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" if a==b {" + newline +
                 "a = a+1" + newline +
                 "} else { " + newline +
                 "b = b+1.5" + newline +
@@ -269,7 +262,7 @@ namespace Logo
         [Test]
         public void TestLoop()
         {
-            SourceCode source = new SourceCode(stringToStreamReader(" while a<10 {" + newline +
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" while a<10 {" + newline +
                 "a = a+1" + newline +
                 "}   "));
             Lexer lexer = new Lexer(source);

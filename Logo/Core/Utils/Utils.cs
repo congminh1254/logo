@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +21,17 @@ namespace Logo.Core.Utils
         public static int charToNumber(char c)
         {
             return c - '0';
+        }
+
+        public static bool IsNumber(object value)
+        {
+            return value is int || value is float;
+        }
+        public static StreamReader stringToStreamReader(string s)
+        {
+            byte[] byteArray = Encoding.ASCII.GetBytes(s);
+            MemoryStream stream = new MemoryStream(byteArray);
+            return new StreamReader(stream);
         }
     }
 }
