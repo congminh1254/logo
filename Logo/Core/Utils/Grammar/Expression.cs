@@ -27,7 +27,8 @@ namespace Logo.Core.Utils.Grammar
             if (token.tokenType == TokenType.STR)
             {
                 string s = (string)value;
-                return s.Substring(1, s.Length - 2);
+                // return s.Substring(1, s.Length - 2);
+                return s;
             }
             return value;
         }
@@ -90,8 +91,16 @@ namespace Logo.Core.Utils.Grammar
 
             if (Utils.IsNumber(left) && Utils.IsNumber(right))
             {
-                float leftValue = (float)left;
-                float rightValue = (float)right;
+                float leftValue = 0;
+                if (left is int)
+                    leftValue = (int)left;
+                else if (left is float)
+                    leftValue = (float)left;
+                float rightValue = 0;
+                if (right is int) 
+                    rightValue = (int)right; 
+                else if (right is float)
+                    rightValue = (float)right;
 
                 bool equals = (leftValue == rightValue);
                 bool leftIsLessThanRight = (leftValue < rightValue);
@@ -134,11 +143,21 @@ namespace Logo.Core.Utils.Grammar
         {
             object left = this.left.Evaluate(scope);
             object right = this.right.Evaluate(scope);
-            if ((left is int && left is float) || (right is int && right is float))
+            if (left is int && right is int)
             {
-                if (left is float || right is float)
-                    return (float)left * (float)right;
                 return (int)left * (int)right;
+            }
+            if (left is float && right is float)
+            {
+                return (float)left * (float)right;
+            }
+            if (left is int && right is float)
+            {
+                return (int)left * (float)right;
+            }
+            if (left is float && right is int)
+            {
+                return (float)left * (int)right;
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not multiplication this two value", position));
             return null;
@@ -160,9 +179,21 @@ namespace Logo.Core.Utils.Grammar
         {
             object left = this.left.Evaluate(scope);
             object right = this.right.Evaluate(scope);
-            if ((left is int && left is float) || (right is int && right is float))
+            if (left is int && right is int)
+            {
+                return (int)left / (int)right;
+            }
+            if (left is float && right is float)
             {
                 return (float)left / (float)right;
+            }
+            if (left is int && right is float)
+            {
+                return (int)left / (float)right;
+            }
+            if (left is float && right is int)
+            {
+                return (float)left / (int)right;
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not divide this two value", position));
             return null;
@@ -249,6 +280,11 @@ namespace Logo.Core.Utils.Grammar
             FunctionStatement func = FunctionStorage.getFunction(identifier);
             if (func != null)
             {
+                Scope newScope = new Scope(scope);
+                for (int i = 0; i < func.parameters.Count; i++)
+                {
+                    newScope.setVariable(func.parameters[i], arguments[i].Evaluate(scope));
+                }
                 return func.Execute(scope, arguments);
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Function not found!"));
@@ -367,9 +403,21 @@ namespace Logo.Core.Utils.Grammar
         {
             object left = this.left.Evaluate(scope);
             object right = this.right.Evaluate(scope);
-            if ((left is int || left is float) && (right is int || right is float))
+            if (left is int && right is int)
+            {
+                return (int)left - (int)right;
+            }
+            if (left is float && right is float)
             {
                 return (float)left - (float)right;
+            }
+            if (left is int && right is float)
+            {
+                return (int)left - (float)right;
+            }
+            if (left is float && right is int)
+            {
+                return (float)left - (int)right;
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not use subtract operator with these variables!", position));
             return null;
@@ -391,9 +439,41 @@ namespace Logo.Core.Utils.Grammar
         {
             object left = this.left.Evaluate(scope);
             object right = this.right.Evaluate(scope);
-            if ((left is int || left is float) && (right is int || right is float))
+            if (left is int && right is int)
+            {
+                return (int)left + (int)right;
+            }
+            if (left is float && right is float)
             {
                 return (float)left + (float)right;
+            }
+            if (left is int && right is float)
+            {
+                return (int)left + (float)right;
+            }
+            if (left is float && right is int)
+            {
+                return (float)left + (int)right;
+            }
+            if (left is string && right is string)
+            {
+                return (string)left + (string)right;
+            }
+            if (left is string && right is int)
+            {
+                return (string)left + (int)right;
+            }
+            if (left is string && right is float)
+            {
+                return (string)left + (float)right;
+            }
+            if (left is int && right is string)
+            {
+                return (int)left + (string)right;
+            }
+            if (left is float && right is string)
+            {
+                return (float)left + (string)right;
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not use sum operator with these variables!", position));
             return null;

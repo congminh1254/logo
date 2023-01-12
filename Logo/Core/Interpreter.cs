@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Logo.Core.Utils;
 using Logo.Core.Utils.Grammar;
 
 namespace Logo.Core
@@ -56,12 +57,23 @@ namespace Logo.Core
         {
             return functions[name];
         }
+
+        public static void setFunctions(Dictionary<string, FunctionStatement> functionList)
+        {
+            functions = functionList;
+        }
     }
 
     public class Interpreter
     {
-        public Interpreter() { }
-
-
+        public static Object Run(Dictionary<string, FunctionStatement> functions)
+        {
+            FunctionStorage.setFunctions(functions);
+            if (!functions.ContainsKey("main")) {
+                ErrorHandling.pushError(new ErrorHandling.LogoException("Interpreter Error: No main function found!"));
+                return null;
+            }
+            return functions["main"].Execute(null);
+        }
     }
 }

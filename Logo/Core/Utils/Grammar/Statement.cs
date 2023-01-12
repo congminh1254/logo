@@ -55,9 +55,9 @@ namespace Logo.Core.Utils.Grammar
             var val = value.Evaluate(parentScope);
 
             if ((val is string && variableType != VariableType.STR)
-                || (val is int && variableType != VariableType.STR)
-                || (val is float && variableType != VariableType.STR)
-                || (val is bool && variableType != VariableType.STR)
+                || (val is int && variableType != VariableType.INT)
+                || (val is float && variableType != VariableType.FLOAT)
+                || (val is bool && variableType != VariableType.BOOL)
                 || (val is TurtleVar && variableType != VariableType.TURTLE))
             {
                 ErrorHandling.pushError(new ErrorHandling.LogoException("New variable type is diffirence than the original type!"));
@@ -181,9 +181,27 @@ namespace Logo.Core.Utils.Grammar
 
         public object Execute(Scope scope)
         {
-            Variable variable = scope.getVariable(this.variable);
-            VariableType variableType = variable.type;
             object val = this.expression.Evaluate(scope);
+
+            Variable variable = scope.getVariable(this.variable);
+            VariableType variableType = VariableType.INT;
+            if (!scope.contains(this.variable))
+            {
+                if (val is string)
+                    variableType = VariableType.STR;
+                if (val is int)
+                    variableType = VariableType.INT;
+                if (val is float)
+                    variableType = VariableType.FLOAT;
+                if (val is TurtleVar)
+                    variableType = VariableType.TURTLE;
+                if (val is bool)
+                    variableType = VariableType.BOOL;
+                scope.putVariable(new Variable(this.variable, variableType, val));
+            } else
+            {
+                variableType = variable.type;
+            }
 
             if ((val is string && variableType != VariableType.STR)
                         || (val is int && variableType != VariableType.INT)
@@ -279,7 +297,11 @@ namespace Logo.Core.Utils.Grammar
                 {
                     return statement;
                 }
-                statement.Execute(scope);
+                var result = statement.Execute(scope);
+                if (result is ReturnStatement)
+                {
+                    return result;
+                }
             }
             return null;
         }

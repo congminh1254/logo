@@ -30,11 +30,28 @@ namespace Logo
             //    Parser parser = new Parser(lexer);
             //    var function = parser.parse();
             //}
-            string code = "main() {\r\n     if a<b AND c==d OR NOT (a > 0 OR a > 3) {\r\n    return 0\r\n    }\r\n    \r\n    }";
+            string code = "func(x: int, y: int) {\r\n" +
+                "return x+y\r\n" +
+                "}\r\n" +
+                "main() {\r\n" +
+                "a=5\r\n" +
+                "b=6\r\n" +
+                "c=func(a, b)\r\n" +
+                "return c" +
+                "}\r\n";
             Lexer lexer = new Lexer(new SourceCode(Utils.stringToStreamReader(code)));
-            Parser parser = new Parser(lexer);
 
+            Parser parser = new Parser(lexer);
             var result = parser.parse();
+            foreach(var item in result )
+            {
+                Console.WriteLine(item);
+            }
+            Console.WriteLine(Interpreter.Run(result));
+            foreach(var ex in ErrorHandling.exceptions)
+            {
+                Console.WriteLine(ex.message);
+            }
         }
     }
 }
