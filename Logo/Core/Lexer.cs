@@ -107,6 +107,10 @@ namespace Logo.Core
                 return token;
             }
 
+            token = buildColorToken();
+            if (token != null)
+                return token;
+
             token = buildStringToken();
             if (token != null)
                 return token;
@@ -119,6 +123,30 @@ namespace Logo.Core
 
             token = new Token(TokenType.ERROR, source.getPosition(), "Token not valid!");
             return token;
+        }
+
+        Token buildColorToken()
+        {
+            if (source.getCurrChar() != '0' || source.peekChar() != 'x')
+                return null;
+            getNextChar();
+            StringBuilder sb = new StringBuilder();
+            sb.Append("0x");
+            List<char> allowed_char = new List<char>() { '0', '1', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F' };
+            for (int i = 0; i<6; i++)
+            {
+                char c = getNextChar();
+                if (!allowed_char.Contains(c))
+                {
+                    token = new Token(TokenType.ERROR, position, "Color Token not valid!");
+                    return token;
+                } else
+                {
+                    sb.Append(c);
+                }
+            }
+            uint int_color = Convert.ToUInt32(sb.ToString(), 16);
+            return new Token(TokenType.COLOR, position, int_color.ToColor());
         }
 
         Token buildStringToken()

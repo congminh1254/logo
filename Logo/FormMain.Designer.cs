@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.rtbCode = new System.Windows.Forms.RichTextBox();
@@ -81,8 +82,7 @@
             this.rtbCode.Name = "rtbCode";
             this.rtbCode.Size = new System.Drawing.Size(973, 967);
             this.rtbCode.TabIndex = 0;
-            this.rtbCode.Text = "#__300_300__\nmain() {\n   turtle = Turtle()\n   turtle.Pen.Enable = true\n   a = tur" +
-    "tle.Pen.Enable\n   a = turtle.Write(\"124\")\n   return turtle.Pen.Enable\n}";
+            this.rtbCode.Text = resources.GetString("rtbCode.Text");
             // 
             // openFileDialog
             // 
@@ -105,7 +105,7 @@
             this.btnOpenFile.Image = global::Logo.Properties.Resources.open_file;
             this.btnOpenFile.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnOpenFile.Name = "btnOpenFile";
-            this.btnOpenFile.Size = new System.Drawing.Size(46, 36);
+            this.btnOpenFile.Size = new System.Drawing.Size(46, 44);
             this.btnOpenFile.Text = "Open file";
             this.btnOpenFile.Click += new System.EventHandler(this.btnOpenFile_Click);
             // 
@@ -115,7 +115,7 @@
             this.btnSave.Image = global::Logo.Properties.Resources.save;
             this.btnSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(46, 36);
+            this.btnSave.Size = new System.Drawing.Size(46, 44);
             this.btnSave.Text = "Save";
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
@@ -125,7 +125,7 @@
             this.btnRun.Image = global::Logo.Properties.Resources.run;
             this.btnRun.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnRun.Name = "btnRun";
-            this.btnRun.Size = new System.Drawing.Size(46, 36);
+            this.btnRun.Size = new System.Drawing.Size(46, 44);
             this.btnRun.Text = "Run";
             this.btnRun.Click += new System.EventHandler(this.btnRun_Click);
             // 

@@ -209,8 +209,8 @@ namespace Logo
             Assert.AreEqual(statements.Count, 1);
             var statement = statements[0];
             Assert.IsTrue(statement is AssignStatement);
-            Literal l = ((AssignStatement)statement).expression as Literal;
-            Assert.IsTrue(l.value is TurtleVar);
+            FunctionCallExp l = ((AssignStatement)statement).expression as FunctionCallExp;
+            Assert.AreEqual(l.identifier, "Turtle");
             Assert.AreEqual(ErrorHandling.exceptions.Count, 0);
         }
 

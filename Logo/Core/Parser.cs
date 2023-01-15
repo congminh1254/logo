@@ -266,7 +266,7 @@ namespace Logo.Core
                 return null;
             Token identifier = acceptAdvanceToken(new TokenType[] { TokenType.IDENTIFIER });
             acceptAdvanceToken(new TokenType[] { TokenType.COLON });
-            Token type = acceptAdvanceToken(new TokenType[] { TokenType.INT_T, TokenType.FLOAT_T, TokenType.BOOL_T, TokenType.TURTLE });
+            Token type = acceptAdvanceToken(new TokenType[] { TokenType.INT_T, TokenType.FLOAT_T, TokenType.BOOL_T, TokenType.TURTLE, TokenType.COLOR });
             if (type == null)
             {
                 ErrorHandling.pushError(new ErrorHandling.LogoException("Function argument not valid", identifier.position));
@@ -279,6 +279,7 @@ namespace Logo.Core
                 {TokenType.FLOAT_T, VariableType.FLOAT},
                 {TokenType.TURTLE, VariableType.TURTLE},
                 {TokenType.BOOL_T, VariableType.BOOL},
+                {TokenType.COLOR_T, VariableType.COLOR},
             };
             if (mapping.ContainsKey(type.tokenType)) {
                 VariableType varType;
@@ -545,7 +546,7 @@ namespace Logo.Core
         IExpression tryParseVariableValue()
         {
             TokenType type = peekToken();
-            if (type != TokenType.INT && type != TokenType.FLOAT && type != TokenType.STR && type != TokenType.TRUE && type != TokenType.FALSE)
+            if (type != TokenType.INT && type != TokenType.FLOAT && type != TokenType.STR && type != TokenType.TRUE && type != TokenType.FALSE && type != TokenType.COLOR)
                 return null;
             switch (peekToken())
             {
@@ -564,6 +565,9 @@ namespace Logo.Core
                 case TokenType.FALSE:
                     token = acceptAdvanceToken(new TokenType[] { TokenType.FALSE });
                     return new Literal(false, token);
+                case TokenType.COLOR:
+                    token = acceptAdvanceToken(new TokenType[] { TokenType.COLOR });
+                    return new Literal(token.colorValue, token);
             }
             return null;
         }

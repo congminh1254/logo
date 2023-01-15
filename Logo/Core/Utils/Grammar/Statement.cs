@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace Logo.Core.Utils.Grammar
 {
@@ -180,6 +181,8 @@ namespace Logo.Core.Utils.Grammar
                     variableType = VariableType.TURTLE;
                 if (val is bool)
                     variableType = VariableType.BOOL;
+                if (val is PenColor)
+                    variableType = VariableType.COLOR;
                 scope.putVariable(new Variable(this.variable, variableType, val));
                 return null;
             }

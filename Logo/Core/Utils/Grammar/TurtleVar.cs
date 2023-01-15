@@ -7,9 +7,26 @@ using System.Threading.Tasks;
 
 namespace Logo.Core.Utils.Grammar
 {
+    public class PenColor
+    {
+        byte a, r, g, b;
+        public PenColor(byte a, byte r, byte g, byte b)
+        {
+            this.a = a;
+            this.r = r;
+            this.g = g;
+            this.b = b;
+        }
+
+        public Color toColor()
+        {
+            return Color.FromArgb(a, r, g, b);
+        }
+    }
+
     public class TurtlePen
     {
-        public Variable color = new Variable("Color", VariableType.COLOR, Color.Black);
+        public Variable color = new Variable("Color", VariableType.COLOR, new PenColor(0,0,0,0));
         public Variable enable = new Variable("Enable", VariableType.BOOL, true);
         public Variable width = new Variable("Width", VariableType.INT, 1);
         public Variable textSize = new Variable("TextSize", VariableType.INT, 14);
@@ -34,7 +51,7 @@ namespace Logo.Core.Utils.Grammar
 
         public void set(string name, object value)
         {
-            if (name == "Color" && value is Color)
+            if (name == "Color" && value is PenColor)
             { color.value = value; return; }
             if (name == "Enable" && value is bool)
             { enable.value = value; ; return; }
@@ -73,7 +90,10 @@ namespace Logo.Core.Utils.Grammar
 
         private void initFunc()
         {
-            move = new ChildFunction(this, "Move", new List<DeclarationStatement>());
+            move = new ChildFunction(this, "Move", new List<DeclarationStatement>()
+            {
+                new DeclarationStatement(VariableType.INT, null, "value", null, true),
+            });
             moveToXY = new ChildFunction(this, "MoveTo", new List<DeclarationStatement>()
             {
                 new DeclarationStatement(VariableType.INT, null, "x", null, true),
@@ -157,6 +177,31 @@ namespace Logo.Core.Utils.Grammar
 
         public object Move(Scope scope)
         {
+            if (scope.contains("value"))
+            {
+                int value = (int)((Variable)scope.getVariable("value")).value;
+                Board board = (Board)(scope.getVariable("Board")).value;
+                TurtlePen turtlePen = (TurtlePen)pen.value;
+                int degree = (int)this.direction.value;
+                var radians = Math.PI * degree / 180.0;
+                int size = (int)(turtlePen.width).value;
+                PenColor penColor = (PenColor)turtlePen.color.value;
+                
+                Pen _pen = new Pen(penColor.toColor(), size);
+                var cos = Math.Round(Math.Cos(radians), 2);
+                var sin = Math.Round(Math.Sin(radians), 2);
+                var x_delta = value * cos;
+                var y_delta = value * sin;
+                var cur_x = (int)x.value; var cur_y = (int)y.value;
+                using (var graphics = Graphics.FromImage(board.bitmap))
+                {
+                    if ((bool)turtlePen.enable.value)
+                        graphics.DrawLine(_pen, cur_x, cur_y, Convert.ToInt32(cur_x + x_delta), Convert.ToInt32(cur_y +y_delta));
+                }
+                x.value = Convert.ToInt32(cur_x+x_delta);
+                y.value = Convert.ToInt32(cur_y + y_delta);
+
+            }
             return null;
         }
 
@@ -164,8 +209,21 @@ namespace Logo.Core.Utils.Grammar
         {
             if (scope.contains("x") && scope.contains("y"))
             {
+                Variable boardVar = scope.getVariable("Board");
+                Board board = (Board)boardVar.value;
+                TurtlePen turtlePen = (TurtlePen)pen.value;
+                int size = (int)(turtlePen.width).value;
+                PenColor penColor = (PenColor)turtlePen.color.value;
+                Color color = penColor.toColor();
+                Pen _pen = new Pen(penColor.toColor(), size);
+                var cur_x = (int)x.value; var cur_y = (int)y.value;
                 var x_pos = (int)scope.getVariable("x").value;
                 var y_pos = (int)scope.getVariable("y").value;
+                using (var graphics = Graphics.FromImage(board.bitmap))
+                {
+                    if ((bool)turtlePen.enable.value)
+                        graphics.DrawLine(_pen, cur_x, cur_y, x_pos, y_pos);
+                }
                 x.value = x_pos;
                 y.value = y_pos;
                 return null;
@@ -178,8 +236,8 @@ namespace Logo.Core.Utils.Grammar
             Variable var = scope.getVariable("value");
             Variable boardVar = scope.getVariable("Board");
             Board board = (Board)boardVar.value;
-
-            int fontSize = (int)(((TurtlePen)pen.value).textSize).value;
+            TurtlePen turtlePen = (TurtlePen)pen.value;
+            int fontSize = (int)(turtlePen.textSize).value;
             Font font = new Font("Microsoft Sans Serif",
                                  fontSize,
                                  FontStyle.Bold);
@@ -189,7 +247,8 @@ namespace Logo.Core.Utils.Grammar
             
             using (Graphics g = Graphics.FromImage(board.bitmap))
             {
-                g.DrawString((string)var.value, font, brush, x_pos, y_pos);
+                if ((bool)turtlePen.enable.value)
+                    g.DrawString((string)var.value, font, brush, x_pos, y_pos);
             }
 
             return null;

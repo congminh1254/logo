@@ -312,7 +312,8 @@ namespace Logo.Core.Utils.Grammar
             else
             {
                 func = FunctionStorage.getFunction(identifier);
-                requested_params = new List<DeclarationStatement>();
+                if (func != null)
+                    requested_params = func.parameters;
             }
             if (requested_params != null)
             {
