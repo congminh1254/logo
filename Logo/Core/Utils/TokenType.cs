@@ -14,7 +14,6 @@ namespace Logo.Core.Utils
        EQ,
        DOT,
        COMMA,
-       SEMI,
        LPAREN,
        RPAREN,
        LCURLY,
@@ -55,6 +54,7 @@ namespace Logo.Core.Utils
        ERROR,
        IDENTIFIER,
        NULL,
-       COPYOF
+       COPYOF,
+       COMMENT
     }
 }

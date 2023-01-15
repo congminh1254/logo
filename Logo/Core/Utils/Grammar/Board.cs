@@ -22,5 +22,18 @@ namespace Logo.Core.Utils.Grammar
                 graph.FillRectangle(Brushes.White, ImageSize);
             }
         }
+
+        public object get(string name, int argsCount)
+        {
+            switch (name)
+            {
+                case "VW":
+                    return width;
+                case "VH":
+                    return height;
+            }
+            ErrorHandling.pushError(new ErrorHandling.LogoException("Params " + name + " of Board is not valid!"));
+            return null;
+        }
     }
 }

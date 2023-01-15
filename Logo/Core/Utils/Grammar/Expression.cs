@@ -265,9 +265,21 @@ namespace Logo.Core.Utils.Grammar
             {
                 return checkingEqual == ((bool)left == (bool)right);
             }
-            if ((left is int || left is float) && (right is int || right is float))
+            if (left is int && right is int)
             {
-                return checkingEqual == ((float)left == (float)right);
+                return (int)left == (int)right;
+            }
+            if (left is float && right is float)
+            {
+                return (float)left == (float)right;
+            }
+            if (left is int && right is float)
+            {
+                return (int)left == (float)right;
+            }
+            if (left is float && right is int)
+            {
+                return (float)left == (int)right;
             }
             if (left is string && right is string)
             {
@@ -379,7 +391,6 @@ namespace Logo.Core.Utils.Grammar
             {
                 if (identifier.Equals("Turtle"))
                 {
-                    Console.WriteLine("new turtle!!!!");
                     if (arguments.Count != 0 && arguments.Count != 2)
                     {
                         ErrorHandling.pushError(new ErrorHandling.LogoException("Turtle type only must have 0 or 2 params!"));
@@ -457,6 +468,12 @@ namespace Logo.Core.Utils.Grammar
                 if (value is TurtleVar)
                 {
                     var obj = ((TurtleVar)value).get(child, argsCount);
+                    if (obj is Variable && !assigning)
+                        return ((Variable)obj).value;
+                    return obj;
+                } else if (value is Board)
+                {
+                    var obj = ((Board)value).get(child, argsCount);
                     if (obj is Variable && !assigning)
                         return ((Variable)obj).value;
                     return obj;

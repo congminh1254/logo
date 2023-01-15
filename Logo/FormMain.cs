@@ -1,5 +1,6 @@
 ﻿using Logo.Core;
 using Logo.Core.Utils;
+using Logo.Core.Utils.Grammar;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -22,47 +23,7 @@ namespace Logo
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            ////string filename = "./ExampleCode/Example_02.txt";
-            ////using (var reader = new StreamReader(filename))
-            ////{
-            ////    SourceCode source = new SourceCode(reader);
-            ////    Lexer lexer = new Lexer(source);
-            ////    Parser parser = new Parser(lexer);
-            ////    var function = parser.parse();
-            ////}
-            //string code = 
-            //    "#__300_300__\r\n" +
-            //    "main() {\r\n" +
-            //    "turtle = Turtle()\r\n" +
-            //    "turtle.Pen.Enable = true\r\n" +
-            //    "a = turtle.Pen.Enable\r\n" +
-            //    "a = turtle.Write(\"124\")\r\n" +
-            //    "return turtle.Pen.Enable\r\n"+
-            //    "}\r\n";
-            //Lexer lexer = new Lexer(new SourceCode(Utils.stringToStreamReader(code)));
-            ////while (true)
-            ////{
-            ////    Token token = lexer.advanceToken();
-            ////    Console.WriteLine(token);
-            ////    if (token.tokenType == TokenType.EOF)
-            ////    {
-            ////        break;
-            ////    }
 
-            ////}
-            //Parser parser = new Parser(lexer);
-            //var result = parser.parse();
-
-            //foreach (var item in result)
-            //{
-            //    Console.WriteLine(item);
-            //}
-            //Interpreter interpreter = new Interpreter();
-            //Console.WriteLine(interpreter.Run(result, parser.header));
-            //foreach (var ex in ErrorHandling.exceptions)
-            //{
-            //    Console.WriteLine(ex.message);
-            //}
         }
 
         private void btnOpenFile_Click(object sender, EventArgs e)
@@ -82,17 +43,24 @@ namespace Logo
         private void btnRun_Click(object sender, EventArgs e)
         {
             ErrorHandling.clear();
-            string code = rtbCode.Text;
+            string code = rtbCode.Text.Replace("\n", "\r\n").Trim();
             Lexer lexer = new Lexer(new SourceCode(Utils.stringToStreamReader(code)));
             Parser parser = new Parser(lexer);
             var result = parser.parse();
-
-            foreach (var item in result)
-            {
-                Console.WriteLine(item);
-            }
+            Header header = parser.header;
+            if (header == null)
+                header = new Header(500, 500);
             Interpreter interpreter = new Interpreter();
-            Console.WriteLine(interpreter.Run(result, parser.header));
+
+            object returnedValue = null;
+            try
+            {
+                returnedValue = interpreter.Run(result, header);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("One more more errors happened on runtime.\nCheck error list for details!\n"+ex.Message, "Error", MessageBoxButtons.OK);
+            }
             foreach (var ex in ErrorHandling.exceptions)
             {
                 Console.WriteLine(ex.message);
@@ -136,7 +104,7 @@ namespace Logo
         private void rtbCode_TextChanged(object sender, EventArgs e)
         {
             ErrorHandling.clear();
-            string code = rtbCode.Text;
+            string code = rtbCode.Text.Replace("\n", "\r\n").Trim();
             Lexer lexer = new Lexer(new SourceCode(Utils.stringToStreamReader(code)));
             Parser parser = new Parser(lexer);
             var result = parser.parse();

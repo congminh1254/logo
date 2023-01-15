@@ -40,7 +40,6 @@ namespace Logo.Core
             { '=', TokenType.EQ },
             { '.', TokenType.DOT },
             { ',', TokenType.COMMA },
-            { ';', TokenType.SEMI},
             { '(', TokenType.LPAREN},
             { ')', TokenType.RPAREN },
             { '{', TokenType.LCURLY },
@@ -64,7 +63,7 @@ namespace Logo.Core
             { ">=", TokenType.GE },
             { "==", TokenType.EQEQ },
             { "!=", TokenType.DIFF},
-            { "__", TokenType.UU }
+            { "__", TokenType.UU },
         };
         char quoteMark = '"';
 
@@ -107,6 +106,10 @@ namespace Logo.Core
                 return token;
             }
 
+            token = buildCommentToken();
+            if (token != null)
+                return advanceToken();
+
             token = buildColorToken();
             if (token != null)
                 return token;
@@ -123,6 +126,21 @@ namespace Logo.Core
 
             token = new Token(TokenType.ERROR, source.getPosition(), "Token not valid!");
             return token;
+        }
+
+        Token buildCommentToken()
+        {
+            if (source.getCurrChar() != '~' || source.peekChar() != '~')
+                return null;
+            getNextChar();
+            getNextChar();
+            StringBuilder sb = new StringBuilder();
+            while(source.getCurrChar() != eof && source.getCurrChar() != newline)
+            {
+                char c = source.getNextChar();
+                sb.Append(c);
+            }
+            return new Token(TokenType.COMMENT, position, sb.ToString());
         }
 
         Token buildColorToken()

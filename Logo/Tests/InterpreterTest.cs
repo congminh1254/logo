@@ -214,7 +214,7 @@ namespace Logo
             string body = "turtle = Turtle()\r\n" +
                 "turtle.Pen.Enable = true\r\n" +
                 "return turtle.Pen.Enable\r\n";
-            Assert.AreEqual(setup(body, true), 0);
+            Assert.AreEqual(setup(body, true), true);
             Assert.AreEqual(ErrorHandling.exceptions.Count, 0);
         }
     }

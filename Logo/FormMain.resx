@@ -132,7 +132,7 @@ main() {
     turtle = Turtle()
     turtle.Pen.Enable = false
     turtle.Pen.Color = 0xFF0000
-    turtle.MoveTo(150,50)
+    turtle.MoveTo(150,150)
     turtle.Direction = 108
     turtle.Pen.Enable = true
 

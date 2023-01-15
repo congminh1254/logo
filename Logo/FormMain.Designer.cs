@@ -143,6 +143,7 @@
             // 
             // rtbCode
             // 
+            this.rtbCode.DetectUrls = false;
             this.rtbCode.Dock = System.Windows.Forms.DockStyle.Fill;
             this.rtbCode.Font = new System.Drawing.Font("Trebuchet MS", 13.85F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.rtbCode.Location = new System.Drawing.Point(3, 3);

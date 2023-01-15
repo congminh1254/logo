@@ -123,7 +123,7 @@ namespace Logo.Core.Utils.Grammar
                 case "Write":
                     if (argsCount == 1)
                         return write;
-                    if (argsCount == 2)
+                    if (argsCount == 3)
                         return writeXY;
                     break;
             }
@@ -205,26 +205,34 @@ namespace Logo.Core.Utils.Grammar
 
         public object MoveTo(Scope scope)
         {
+            int x_pos = 0, y_pos = 0;
+            Variable boardVar = scope.getVariable("Board");
+            Board board = (Board)boardVar.value;
+            TurtlePen turtlePen = (TurtlePen)pen.value;
+            int size = (int)(turtlePen.width).value;
+            Color penColor = (Color)turtlePen.color.value;
+            Pen _pen = new Pen(penColor, size);
+            var cur_x = (int)x.value; var cur_y = (int)y.value;
             if (scope.contains("x") && scope.contains("y"))
             {
-                Variable boardVar = scope.getVariable("Board");
-                Board board = (Board)boardVar.value;
-                TurtlePen turtlePen = (TurtlePen)pen.value;
-                int size = (int)(turtlePen.width).value;
-                Color penColor = (Color)turtlePen.color.value;
-                Pen _pen = new Pen(penColor, size);
-                var cur_x = (int)x.value; var cur_y = (int)y.value;
-                var x_pos = (int)scope.getVariable("x").value;
-                var y_pos = (int)scope.getVariable("y").value;
-                using (var graphics = Graphics.FromImage(board.bitmap))
-                {
-                    if ((bool)turtlePen.enable.value)
-                        graphics.DrawLine(_pen, cur_x, cur_y, x_pos, y_pos);
-                }
-                x.value = x_pos;
-                y.value = y_pos;
+                x_pos = (int)scope.getVariable("x").value;
+                y_pos = (int)scope.getVariable("y").value;
+            } else if (scope.contains("coordinate"))
+            {
+                Coordinate coor = (Coordinate)scope.getVariable("coordinate").value;
+                x_pos = coor.x; y_pos = coor.y;
+            } else
+            {
+                ErrorHandling.pushError(new ErrorHandling.LogoException("Provided params for function Turtle.MoveTo not valid!"));
                 return null;
             }
+            using (var graphics = Graphics.FromImage(board.bitmap))
+            {
+                if ((bool)turtlePen.enable.value)
+                    graphics.DrawLine(_pen, cur_x, cur_y, x_pos, y_pos);
+            }
+            x.value = x_pos;
+            y.value = y_pos;
             return null;
         }
 
@@ -242,11 +250,19 @@ namespace Logo.Core.Utils.Grammar
             Brush brush = new SolidBrush(penColor);
             int x_pos = (int)x.value;
             int y_pos = (int)y.value;
-            
+            if (scope.contains("x") && scope.contains("y"))
+            {
+                x_pos = (int)scope.getVariable("x").value;
+                y_pos = (int)scope.getVariable("y").value;
+            }
+
+            string value = var.value.ToString();
+
+
             using (Graphics g = Graphics.FromImage(board.bitmap))
             {
                 if ((bool)turtlePen.enable.value)
-                    g.DrawString((string)var.value, font, brush, x_pos, y_pos);
+                    g.DrawString(value, font, brush, x_pos, y_pos);
             }
 
             return null;
