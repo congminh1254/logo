@@ -22,35 +22,98 @@ namespace Logo
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            //string filename = "./ExampleCode/Example_02.txt";
-            //using (var reader = new StreamReader(filename))
-            //{
-            //    SourceCode source = new SourceCode(reader);
-            //    Lexer lexer = new Lexer(source);
-            //    Parser parser = new Parser(lexer);
-            //    var function = parser.parse();
-            //}
-            string code = "func(x: int, y: int) {\r\n" +
-                "return x+y\r\n" +
-                "}\r\n" +
-                "main() {\r\n" +
-                "a=5\r\n" +
-                "b=6\r\n" +
-                "c=func(a, b)\r\n" +
-                "return c" +
-                "}\r\n";
-            Lexer lexer = new Lexer(new SourceCode(Utils.stringToStreamReader(code)));
+            ////string filename = "./ExampleCode/Example_02.txt";
+            ////using (var reader = new StreamReader(filename))
+            ////{
+            ////    SourceCode source = new SourceCode(reader);
+            ////    Lexer lexer = new Lexer(source);
+            ////    Parser parser = new Parser(lexer);
+            ////    var function = parser.parse();
+            ////}
+            //string code = 
+            //    "#__300_300__\r\n" +
+            //    "main() {\r\n" +
+            //    "turtle = Turtle()\r\n" +
+            //    "turtle.Pen.Enable = true\r\n" +
+            //    "a = turtle.Pen.Enable\r\n" +
+            //    "a = turtle.Write(\"124\")\r\n" +
+            //    "return turtle.Pen.Enable\r\n"+
+            //    "}\r\n";
+            //Lexer lexer = new Lexer(new SourceCode(Utils.stringToStreamReader(code)));
+            ////while (true)
+            ////{
+            ////    Token token = lexer.advanceToken();
+            ////    Console.WriteLine(token);
+            ////    if (token.tokenType == TokenType.EOF)
+            ////    {
+            ////        break;
+            ////    }
 
+            ////}
+            //Parser parser = new Parser(lexer);
+            //var result = parser.parse();
+
+            //foreach (var item in result)
+            //{
+            //    Console.WriteLine(item);
+            //}
+            //Interpreter interpreter = new Interpreter();
+            //Console.WriteLine(interpreter.Run(result, parser.header));
+            //foreach (var ex in ErrorHandling.exceptions)
+            //{
+            //    Console.WriteLine(ex.message);
+            //}
+        }
+
+        private void btnOpenFile_Click(object sender, EventArgs e)
+        {
+            openFileDialog.Title = "Open a Logo file";
+            openFileDialog.DefaultExt = "logo";
+            openFileDialog.InitialDirectory = Environment.CurrentDirectory;
+            DialogResult result = openFileDialog.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                string filename = openFileDialog.FileName;
+                string text = File.ReadAllText(filename);
+                rtbCode.Text = text;
+            }
+        }
+
+        private void btnRun_Click(object sender, EventArgs e)
+        {
+            ErrorHandling.clear();
+            string code = rtbCode.Text;
+            Lexer lexer = new Lexer(new SourceCode(Utils.stringToStreamReader(code)));
             Parser parser = new Parser(lexer);
             var result = parser.parse();
-            foreach(var item in result )
+
+            foreach (var item in result)
             {
                 Console.WriteLine(item);
             }
-            Console.WriteLine(Interpreter.Run(result));
-            foreach(var ex in ErrorHandling.exceptions)
+            Interpreter interpreter = new Interpreter();
+            Console.WriteLine(interpreter.Run(result, parser.header));
+            foreach (var ex in ErrorHandling.exceptions)
             {
                 Console.WriteLine(ex.message);
+            }
+            if (interpreter.result != null)
+            {
+                pbResult.Image = interpreter.result;
+                Console.WriteLine("Image loaded!");
+            }
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            saveFileDialog.Title = "Save to Logo file";
+            saveFileDialog.DefaultExt = "logo";
+            saveFileDialog.InitialDirectory = Environment.CurrentDirectory;
+            DialogResult result = saveFileDialog.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                string filename = saveFileDialog.FileName;
+                File.WriteAllText(filename, rtbCode.Text);
             }
         }
     }

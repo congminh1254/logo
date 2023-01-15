@@ -1,0 +1,8 @@
+﻿#__300_300__
+main() {
+   turtle = Turtle()
+   turtle.Pen.Enable = true
+   a = turtle.Pen.Enable
+   a = turtle.Write("124")
+   return turtle.Pen.Enable
+}

@@ -202,7 +202,7 @@ namespace Logo
 
         [Test]
         public void TestKeyword() {
-            SourceCode source = new SourceCode(Utils.stringToStreamReader(" AND OR NOT if else while return true false int str float bool Turtle __  "));
+            SourceCode source = new SourceCode(Utils.stringToStreamReader(" AND OR NOT if else while return true false int str float bool Turtle __ copyof "));
             Lexer lexer = new Lexer(source);
             List<Token> tokens = getAllTokens(lexer);
             int i = 0;
@@ -221,6 +221,7 @@ namespace Logo
             Assert.AreEqual(TokenType.BOOL_T, tokens[i++].tokenType);
             Assert.AreEqual(TokenType.TURTLE, tokens[i++].tokenType);
             Assert.AreEqual(TokenType.UU, tokens[i++].tokenType);
+            Assert.AreEqual(TokenType.COPYOF, tokens[i++].tokenType);
         }
 
         [Test]

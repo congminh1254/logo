@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Logo.Core.Utils.Grammar
 {
@@ -97,8 +98,8 @@ namespace Logo.Core.Utils.Grammar
                 else if (left is float)
                     leftValue = (float)left;
                 float rightValue = 0;
-                if (right is int) 
-                    rightValue = (int)right; 
+                if (right is int)
+                    rightValue = (int)right;
                 else if (right is float)
                     rightValue = (float)right;
 
@@ -215,9 +216,21 @@ namespace Logo.Core.Utils.Grammar
         {
             object left = this.left.Evaluate(scope);
             object right = this.right.Evaluate(scope);
-            if ((left is int && left is float) || (right is int && right is float))
+            if (left is int && right is int)
+            {
+                return (int)left % (int)right;
+            }
+            if (left is float && right is float)
             {
                 return (float)left % (float)right;
+            }
+            if (left is int && right is float)
+            {
+                return (int)left % (float)right;
+            }
+            if (left is float && right is int)
+            {
+                return (float)left % (int)right;
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not divide this two value", position));
             return null;
@@ -269,26 +282,208 @@ namespace Logo.Core.Utils.Grammar
     {
         public string identifier;
         public List<IExpression> arguments;
+        public AttrExp attr;
         public FunctionCallExp(string identifier, List<IExpression> arguments)
         {
             this.identifier = identifier;
             this.arguments = arguments;
         }
 
+        public FunctionCallExp(AttrExp attr, List<IExpression> arguments)
+        {
+            this.attr = attr;
+            this.arguments = arguments;
+        }
+
         public object Evaluate(Scope scope)
         {
-            FunctionStatement func = FunctionStorage.getFunction(identifier);
-            if (func != null)
+            FunctionStatement func = null;
+            ChildFunction childFunc = null;
+            List<DeclarationStatement> requested_params = null;
+            if (attr != null)
             {
-                Scope newScope = new Scope(scope);
-                for (int i = 0; i < func.parameters.Count; i++)
+                var returnedValue = attr.Evaluate(scope, arguments.Count);
+                if (returnedValue is ChildFunction)
                 {
-                    newScope.setVariable(func.parameters[i], arguments[i].Evaluate(scope));
+                    childFunc = (ChildFunction)returnedValue;
+                    requested_params = childFunc.parameters;
                 }
-                return func.Execute(scope, arguments);
+            }
+            else
+            {
+                func = FunctionStorage.getFunction(identifier);
+                requested_params = new List<DeclarationStatement>();
+            }
+            if (requested_params != null)
+            {
+                Scope newScope = new Scope();
+                for (int i = 0; i < requested_params.Count; i++)
+                {
+                    if (arguments[i] is Identifier)
+                    {
+                        var name = ((Identifier)arguments[i]).identifier;
+                        newScope.setVariable(requested_params[i].name, scope.getVariable(name));
+                    }
+                    else
+                    {
+                        newScope.setVariable(requested_params[i].name, new Variable(requested_params[i].name, requested_params[i].variableType, arguments[i].Evaluate(scope)));
+                    }
+                }
+                if (scope.contains("Board"))
+                    newScope.setVariable("Board", scope.getVariable("Board"));
+                if (childFunc != null)
+                    return childFunc.invoke(newScope);
+                else if (func != null)
+                    return func.Execute(newScope);
+            }
+            if (attr != null)
+            {
+                if (attr.variableName == "Move")
+                {
+                    executeSystemFunction(scope);
+                }
+            }
+            if (identifier != null)
+            {
+                if (identifier.Equals("Turtle"))
+                {
+                    return executeSystemFunction(scope);
+                }
+                if (identifier.Equals("Coordinate"))
+                {
+                    return executeSystemFunction(scope);
+                }
+                if (identifier.Equals("prompt"))
+                {
+                    return executeSystemFunction(scope);
+                }
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Function not found!"));
             return null;
+        }
+
+        object executeSystemFunction(Scope scope)
+        {
+            if (identifier != null)
+            {
+                if (identifier.Equals("Turtle"))
+                {
+                    Console.WriteLine("new turtle!!!!");
+                    if (arguments.Count != 0 && arguments.Count != 2)
+                    {
+                        ErrorHandling.pushError(new ErrorHandling.LogoException("Turtle type only must have 0 or 2 params!"));
+                        return null;
+                    }
+                    if (arguments.Count == 2)
+                    {
+                        int x = (int)arguments[0].Evaluate(scope);
+                        int y = (int)arguments[1].Evaluate(scope);
+                        return new TurtleVar(x, y);
+                    }
+                    return new TurtleVar();
+                }
+                if (identifier.Equals("Coordinate"))
+                {
+                    if (arguments.Count != 2)
+                    {
+                        ErrorHandling.pushError(new ErrorHandling.LogoException("Coordinate type only must have 2 params!"));
+                        return null;
+                    }
+                    int x = (int)arguments[0].Evaluate(scope);
+                    int y = (int)arguments[1].Evaluate(scope);
+                    return new Coordinate(x, y);
+                }
+                if (identifier.Equals("prompt"))
+                {
+                    return null;
+                }
+            }
+            else if (attr != null)
+            {
+                if (attr.variableName.Equals("Move"))
+                {
+
+                }
+                else if (attr.variableName.Equals("MoveTo"))
+                {
+
+                }
+            }
+            return null;
+        }
+    }
+
+    public class AttrExp: IExpression
+    {
+        public string variableName;
+        public IExpression parent;
+        public string child;
+        public int argsCount = 0;
+        public bool assigning = false;
+
+        public AttrExp(string variableName, string child)
+        {
+            this.variableName = variableName;
+            this.child = child;
+        }
+
+        public AttrExp(IExpression parent, string child)
+        {
+            this.parent = parent;
+            this.child = child;
+        }
+
+        public object Evaluate(Scope scope)
+        {
+            if (variableName != null)
+            {
+                if (scope.getVariable(variableName) == null)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Variable not found!"));
+                    return null;
+                }
+                var value = scope.getVariable(variableName).value;
+                if (value is TurtleVar)
+                {
+                    var obj = ((TurtleVar)value).get(child, argsCount);
+                    if (obj is Variable && !assigning)
+                        return ((Variable)obj).value;
+                    return obj;
+                }
+                // TODO
+                return null;
+            } else if (child != null)
+            {
+                var obj = parent.Evaluate(scope);
+                if (obj is TurtlePen)
+                {
+                    obj = ((TurtlePen)obj).get(child, argsCount);
+                    if (obj is Variable && !assigning)
+                        return ((Variable)obj).value;
+                    return obj;
+                    
+                }
+                // TODO
+                return null;
+            }
+            return null;
+        }
+
+        public object Evaluate(Scope scope, int argsCount)
+        {
+            this.argsCount = argsCount;
+            return Evaluate(scope);
+        }
+    }
+
+    public class CopyOfExp: IExpression {
+        public string identifier;
+        
+        public CopyOfExp(string identifier) { this.identifier = identifier; }
+
+        public object Evaluate(Scope scope)
+        {
+            return scope.getVariable(identifier).value;
         }
     }
 
@@ -305,11 +500,12 @@ namespace Logo.Core.Utils.Grammar
 
         public object Evaluate(Scope scope)
         {
-            object value = scope.getVariable(identifier).value;
-            if (value == null)
+            if (scope.getVariable(identifier) == null)
             {
                 ErrorHandling.pushError(new ErrorHandling.LogoException("Variable not found!"));
+                return null;
             }
+            object value = scope.getVariable(identifier).value;
             return value;
         }
     }

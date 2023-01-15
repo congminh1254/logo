@@ -12,7 +12,11 @@ namespace Logo.Core.Utils.Grammar
         FLOAT,
         STR,
         TURTLE,
-        BOOL
+        BOOL,
+        TURTLE_PEN,
+        COORDINATE,
+        COLOR,
+        BOARD
     }
     public class Variable : IExpression
     {
@@ -23,6 +27,28 @@ namespace Logo.Core.Utils.Grammar
         {
             this.name = name;
             this.type = type;
+        }
+
+        public Variable(string name, object value)
+        {
+            this.name = name;
+            this.value = value;
+            if (value is int)
+            {
+                this.type = VariableType.INT;
+            } else if (value is float)
+            {
+                this.type = VariableType.FLOAT;
+            } else if (value is bool)
+            {
+                this.type = VariableType.BOOL;
+            } else if (value is string)
+            {
+                this.type = VariableType.STR;
+            } else if (value is TurtleVar)
+            {
+                this.type = VariableType.TURTLE;
+            }
         }
 
         public Variable(string name, VariableType type, object value) : this(name, type)

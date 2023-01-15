@@ -113,7 +113,11 @@
     <Compile Include="Core\Lexer.cs" />
     <Compile Include="Core\SourceCode.cs" />
     <Compile Include="Core\Utils\ErrorHandling.cs" />
+    <Compile Include="Core\Utils\Grammar\Board.cs" />
+    <Compile Include="Core\Utils\Grammar\ChildFunction.cs" />
+    <Compile Include="Core\Utils\Grammar\Coordinate.cs" />
     <Compile Include="Core\Utils\Grammar\Expression.cs" />
+    <Compile Include="Core\Utils\Grammar\Header.cs" />
     <Compile Include="Core\Utils\Grammar\Statement.cs" />
     <Compile Include="Core\Utils\Grammar\TurtleVar.cs" />
     <Compile Include="Core\Utils\Grammar\Variable.cs" />
@@ -144,8 +148,12 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Coverage.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Demo.logo">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
@@ -167,6 +175,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ExampleCode\Example_02.txt" />
+    <None Include="Resources\open_file.png" />
+    <None Include="Resources\run.png" />
+    <None Include="Resources\save.png" />
     <Content Include="Tests\Fixtures\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

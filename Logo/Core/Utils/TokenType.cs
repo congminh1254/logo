@@ -53,5 +53,6 @@ namespace Logo.Core.Utils
        ERROR,
        IDENTIFIER,
        NULL,
+       COPYOF
     }
 }

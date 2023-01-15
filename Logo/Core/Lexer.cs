@@ -32,7 +32,8 @@ namespace Logo.Core
             { "str", TokenType.STR_T },
             { "float", TokenType.FLOAT_T },
             { "bool",  TokenType.BOOL_T },
-            { "Turtle", TokenType.TURTLE },
+            //{ "Turtle", TokenType.TURTLE },
+            { "copyof", TokenType.COPYOF }
         };
         Dictionary<char, TokenType> singleChar = new Dictionary<char, TokenType>()
         {

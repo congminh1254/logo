@@ -13,6 +13,7 @@ namespace Logo.Core
         Lexer lexer;
         Dictionary<String, FunctionStatement> functions = new Dictionary<string, FunctionStatement>();
         Token currentToken, nextToken;
+        public Header header { get; private set; } = null;
         public Parser(Lexer lexer)
         {
             this.lexer = lexer;
@@ -85,6 +86,7 @@ namespace Logo.Core
 
         public Dictionary<string, FunctionStatement> parse()
         {
+            header = tryParseHeader();
             FunctionStatement func = tryParseFunction();
             while (func != null)
             {
@@ -99,6 +101,24 @@ namespace Logo.Core
                 func = tryParseFunction();
             }
             return functions;
+        }
+
+        Header tryParseHeader()
+        {
+            if (peekToken() != TokenType.HASH)
+            {
+                return null;
+            }
+            int width, height;
+            acceptAdvanceToken(new TokenType[] { TokenType.HASH });
+            acceptAdvanceToken(new TokenType[] { TokenType.UU });
+            var token = acceptAdvanceToken(new TokenType[] { TokenType.INT });
+            width = token.intValue ?? default(int);
+            acceptAdvanceToken(new TokenType[] { TokenType.UND });
+            token = acceptAdvanceToken(new TokenType[] { TokenType.INT });
+            height = token.intValue ?? default(int);
+            acceptAdvanceToken(new TokenType[] { TokenType.UU });
+            return new Header(width, height);
         }
 
         FunctionStatement tryParseFunction()
@@ -184,18 +204,43 @@ namespace Logo.Core
                 return null;
             }
             var token = acceptAdvanceToken(new TokenType[] { TokenType.IDENTIFIER });
+            AttrExp exp = null;
+            while (peekToken() == TokenType.DOT)
+            {
+                acceptAdvanceToken(new TokenType[] { TokenType.DOT });
+                if (peekToken() != TokenType.IDENTIFIER)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Error parsing attribute!", token.position));
+                }
+                Token child = acceptAdvanceToken(new TokenType[] { TokenType.IDENTIFIER });
+                if (exp == null)
+                {
+                    exp = new AttrExp(token.textValue, child.textValue);
+                }
+                else
+                {
+                    exp = new AttrExp(exp, child.textValue);
+                }
+            }
             if (peekToken() == TokenType.LPAREN)
             {
                 acceptAdvanceToken(new TokenType[] { TokenType.LPAREN });
                 List<IExpression> args = parseFunctionCallArgs();
                 acceptAdvanceToken(new TokenType[] { TokenType.RPAREN });
+                if (exp != null)
+                    return new FunctionCallStatement(exp, args);
                 return new FunctionCallStatement(token.textValue, args);
             }
             else
             {
                 acceptAdvanceToken(new TokenType[] { TokenType.EQ });
                 IExpression expr = parseExpression();
-                return new AssignStatement(expr, token.textValue);
+                if (exp != null)
+                {
+                    exp.assigning = true;
+                    return new AssignStatement(exp, expr);
+                }
+                return new AssignStatement(token.textValue, expr);
             }
         }
 
@@ -208,7 +253,7 @@ namespace Logo.Core
             acceptAdvanceToken(new TokenType[] { TokenType.WHILE });
             IExpression condition = parseExpression();
             BlockStatement block = tryParseFunctionBody();
-            if (block != null)
+            if (block == null)
             {
                 ErrorHandling.pushError(new ErrorHandling.LogoException("Error parsing body for While statement", nextToken.position));
             }
@@ -425,14 +470,14 @@ namespace Logo.Core
             return parseBasicExpr();
         }
 
-        Literal tryParseTurtle()
-        {
-            if (peekToken() != TokenType.TURTLE) return null;
-            var token = acceptAdvanceToken(new TokenType[] { TokenType.TURTLE });
-            acceptAdvanceToken(new TokenType[] { TokenType.LPAREN });
-            acceptAdvanceToken(new TokenType[] { TokenType.RPAREN });
-            return new Literal(new TurtleVar(), token);
-        }
+        //Literal tryParseTurtle()
+        //{
+        //    if (peekToken() != TokenType.TURTLE) return null;
+        //    var token = acceptAdvanceToken(new TokenType[] { TokenType.TURTLE });
+        //    acceptAdvanceToken(new TokenType[] { TokenType.LPAREN });
+        //    acceptAdvanceToken(new TokenType[] { TokenType.RPAREN });
+        //    return new Literal(new TurtleVar(), token);
+        //}
 
         IExpression tryParseGroupStatement()
         {
@@ -443,23 +488,57 @@ namespace Logo.Core
             return expr;
         }
 
-        IExpression tryParseFunctionCallExpr(Token token)
+        IExpression tryParseFunctionCallExpr(Token token, AttrExp attr)
         {
             if (peekToken() != TokenType.LPAREN)
                 return null;
             acceptAdvanceToken(new TokenType[] { TokenType.LPAREN });
             List<IExpression> args = parseFunctionCallArgs();
             acceptAdvanceToken(new TokenType[] { TokenType.RPAREN });
+            if (attr != null)
+                return new FunctionCallExp(attr, args);
             return new FunctionCallExp(token.textValue, args);
+        }
+
+        IExpression tryParseCopyOfIdentifier()
+        {
+            if (peekToken() != TokenType.COPYOF) return null;
+            Token token = acceptAdvanceToken(new TokenType[] { TokenType.COPYOF });
+            if (peekToken() != TokenType.IDENTIFIER)
+            {
+                ErrorHandling.pushError(new ErrorHandling.LogoException("Copyof must be use with a variable!", token.position));
+                return null;
+            }
+            token = acceptAdvanceToken(new TokenType[] { TokenType.IDENTIFIER });
+            return new CopyOfExp(token.textValue);
         }
 
         IExpression tryParseIdentifierOrFuncCall()
         {
             if (peekToken() != TokenType.IDENTIFIER) return null;
             Token token = acceptAdvanceToken(new TokenType[] { TokenType.IDENTIFIER });
-            IExpression expr = tryParseFunctionCallExpr(token);
+            AttrExp exp = null;
+            while (peekToken() == TokenType.DOT) {
+                acceptAdvanceToken(new TokenType[] { TokenType.DOT });
+                if (peekToken() != TokenType.IDENTIFIER)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Error parsing attribute!", token.position));
+                }
+                Token child = acceptAdvanceToken(new TokenType[] { TokenType.IDENTIFIER });
+                if (exp == null)
+                {
+                    exp = new AttrExp(token.textValue, child.textValue);
+                } else
+                {
+                    exp = new AttrExp(exp, child.textValue);
+                }
+            }
+
+            IExpression expr = tryParseFunctionCallExpr(token, exp);
             if (expr != null)
                 return expr;
+            if (exp != null)
+                return exp;
             return new Identifier(token.textValue, token);
         }
 
@@ -491,12 +570,15 @@ namespace Logo.Core
 
         IExpression parseBasicExpr()
         {
-            IExpression expr = null;
-            expr = tryParseTurtle();
+            //IExpression expr = tryParseTurtle();
+            //if (expr != null)
+            //    return expr;
+
+            IExpression expr = tryParseGroupStatement();
             if (expr != null)
                 return expr;
 
-            expr = tryParseGroupStatement();
+            expr = tryParseCopyOfIdentifier();
             if (expr != null)
                 return expr;
 

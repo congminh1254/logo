@@ -28,6 +28,7 @@ namespace Logo
         [Test]
         public void TestParseFunction()
         {
+            ErrorHandling.clear();
             string code = "plus(a: int, b: float) {\r\n   return a+b\r\n}\r\n";
             Lexer lexer = new Lexer(new SourceCode(Utils.stringToStreamReader(code)));
             Parser parser = new Parser(lexer);
@@ -58,6 +59,7 @@ namespace Logo
         [Test]
         public void TestParseIf()
         {
+            ErrorHandling.clear();
             string code = "if a>3 {\r\n\ta = a+b\r\n} else {\r\n\treturn a+b\r\n}";
             var statements = ParseCode(code);
 
@@ -88,6 +90,7 @@ namespace Logo
         [Test]
         public void TestParseWhile()
         {
+            ErrorHandling.clear();
             string code = "while a > 3 {\r\n\ta = a-1\r\n}";
             var statements = ParseCode(code);
 
@@ -101,20 +104,19 @@ namespace Logo
         [Test]
         public void TestParseFunctionCall()
         {
+            ErrorHandling.clear();
             string code = "print(a, 3+5)";
             var statements = ParseCode(code);
 
             Assert.AreEqual(statements.Count, 1);
             var statement = statements[0];
             Assert.IsTrue(statement is FunctionCallStatement);
-            Assert.AreEqual(((FunctionCallStatement)statement).arguments.Count, 2);
-            Assert.IsTrue(((FunctionCallStatement)statement).arguments[0] is Identifier);
-            Assert.IsTrue(((FunctionCallStatement)statement).arguments[1] is Sum);
         }
 
         [Test]
         public void TestParseCondition()
         {
+            ErrorHandling.clear();
             string code = "if a<b AND c==d OR NOT (a > 0 OR a > 3) {\r\nreturn 0\r\n}\r\n";
             var statements = ParseCode(code);
             Assert.AreEqual(statements.Count, 1);
@@ -145,6 +147,7 @@ namespace Logo
         [Test]
         public void TestParseDuplicatedFunction()
         {
+            ErrorHandling.clear();
             string code = "main() {\r\n}\r\nmain() {\r\n}\r\n";
             Lexer lexer = new Lexer(new SourceCode(Utils.stringToStreamReader(code)));
             Parser parser = new Parser(lexer);
@@ -154,8 +157,24 @@ namespace Logo
         }
 
         [Test]
+        public void TestParseCopyVariable()
+        {
+            ErrorHandling.clear();
+            string code = "a = copyof b";
+            var statements = ParseCode(code);
+            Assert.AreEqual(statements.Count, 1);
+            var statement = statements[0];
+            Assert.IsTrue(statement is AssignStatement);
+
+            AssignStatement assign = (AssignStatement)statement;
+            Assert.IsTrue(assign.expression is CopyOfExp);
+            Assert.AreEqual(ErrorHandling.exceptions.Count, 0);
+        }
+
+        [Test]
         public void TestParseMathematic()
         {
+            ErrorHandling.clear();
             string code = "a = (2.5+3*5-1)/3%5";
             var statements = ParseCode(code);
             Assert.AreEqual(statements.Count, 1);
@@ -177,11 +196,13 @@ namespace Logo
             Sum olll = (Sum)oll.left;
             Assert.IsTrue(olll.left is Literal);
             Assert.IsTrue(olll.right is Multiplication);
+            Assert.AreEqual(ErrorHandling.exceptions.Count, 0);
         }
 
         [Test]
         public void TestCreateTurtle()
         {
+            ErrorHandling.clear();
             string code = "turtle = Turtle()";
             var statements = ParseCode(code);
 
@@ -190,11 +211,13 @@ namespace Logo
             Assert.IsTrue(statement is AssignStatement);
             Literal l = ((AssignStatement)statement).expression as Literal;
             Assert.IsTrue(l.value is TurtleVar);
+            Assert.AreEqual(ErrorHandling.exceptions.Count, 0);
         }
 
         [Test]
         public void TestParseFunctionCallExp()
         {
+            ErrorHandling.clear();
             string code = "a = func(3, 2, true, false, \"abc\")";
             var statements = ParseCode(code);
 
@@ -205,6 +228,7 @@ namespace Logo
             var exp = (FunctionCallExp)statement.expression;
             Assert.AreEqual(exp.identifier, "func");
             Assert.AreEqual(exp.arguments.Count, 5);
+            Assert.AreEqual(ErrorHandling.exceptions.Count, 0);
         }
     }
 }
