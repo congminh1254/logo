@@ -318,11 +318,21 @@ namespace Logo.Core.Utils.Grammar
             if (requested_params != null)
             {
                 Scope newScope = new Scope();
+                if (requested_params.Count != arguments.Count)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Provided arguments is not matched with Function declaration!"));
+                    return null;
+                }
                 for (int i = 0; i < requested_params.Count; i++)
                 {
                     if (arguments[i] is Identifier)
                     {
                         var name = ((Identifier)arguments[i]).identifier;
+                        if (!scope.contains(name))
+                        {
+                            ErrorHandling.pushError(new ErrorHandling.LogoException("Variable not found!"));
+                            return null;
+                        }
                         newScope.setVariable(requested_params[i].name, scope.getVariable(name));
                     }
                     else

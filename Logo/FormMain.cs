@@ -102,6 +102,16 @@ namespace Logo
                 pbResult.Image = interpreter.result;
                 Console.WriteLine("Image loaded!");
             }
+
+            if (ErrorHandling.exceptions.Count > 0)
+            {
+                MessageBox.Show("One more more errors happened on runtime.\nCheck error list for details!", "Error", MessageBoxButtons.OK);
+                foreach (var ex in ErrorHandling.exceptions)
+                {
+                    string[] msg = new string[2] { ex.message, (ex.position != null ? ex.position.ToString() : "") };
+                    listError.Items.Add(new ListViewItem(msg));
+                }
+            }
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -114,6 +124,29 @@ namespace Logo
             {
                 string filename = saveFileDialog.FileName;
                 File.WriteAllText(filename, rtbCode.Text);
+            }
+        }
+
+        private void timerLexer_Tick(object sender, EventArgs e)
+        {
+            
+            
+        }
+
+        private void rtbCode_TextChanged(object sender, EventArgs e)
+        {
+            ErrorHandling.clear();
+            string code = rtbCode.Text;
+            Lexer lexer = new Lexer(new SourceCode(Utils.stringToStreamReader(code)));
+            Parser parser = new Parser(lexer);
+            var result = parser.parse();
+
+            listError.Items.Clear();
+            Console.WriteLine(ErrorHandling.exceptions.Count);
+            foreach (var ex in ErrorHandling.exceptions)
+            {
+                string[] msg = new string[2] { ex.message, ex.position.ToString() };
+                listError.Items.Add(new ListViewItem(msg));
             }
         }
     }

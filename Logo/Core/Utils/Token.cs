@@ -15,7 +15,7 @@ namespace Logo.Core.Utils
         public string textValue { get; private set; } = null;
         public int? intValue { get; private set; } = null;
         public float? floatValue { get; private set; } = null;
-        public PenColor colorValue { get; private set; } = null;
+        public Color? colorValue { get; private set; } = null;
 
         public Token(TokenType tokenType, Position position)
         {
@@ -90,7 +90,7 @@ namespace Logo.Core.Utils
             this.floatValue = floatValue;
         }
 
-        public Token(TokenType tokenType, Position position, PenColor color)
+        public Token(TokenType tokenType, Position position, Color color)
         {
             if (position == null)
             {

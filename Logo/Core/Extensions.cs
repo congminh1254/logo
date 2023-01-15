@@ -17,9 +17,9 @@ namespace Logo.Core
             return "Position(line=" + (position.line + 1) + ",column=" + (position.column + 1) + ")";
         }
 
-        public static PenColor ToColor(this uint argb)
+        public static Color ToColor(this uint argb)
         {
-            return new PenColor((byte)((argb & -16777216) >> 0x18),
+            return Color.FromArgb(byte.MaxValue,
                                   (byte)((argb & 0xff0000) >> 0x10),
                                   (byte)((argb & 0xff00) >> 8),
                                   (byte)(argb & 0xff));

@@ -240,7 +240,10 @@ namespace Logo.Core
                     exp.assigning = true;
                     return new AssignStatement(exp, expr);
                 }
-                return new AssignStatement(token.textValue, expr);
+                if (expr != null)
+                    return new AssignStatement(token.textValue, expr);
+                ErrorHandling.pushError(new ErrorHandling.LogoException("Assigning expression not valid!", token.position));
+                return null;
             }
         }
 
@@ -256,6 +259,7 @@ namespace Logo.Core
             if (block == null)
             {
                 ErrorHandling.pushError(new ErrorHandling.LogoException("Error parsing body for While statement", nextToken.position));
+                return null;
             }
             return new WhileStatement(condition, block);
         }
@@ -342,6 +346,11 @@ namespace Logo.Core
             {
                 Token token = acceptAdvanceToken(new TokenType[] { TokenType.OR });
                 IExpression right = parseAnd();
+                if (right == null)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Invalid OR operation!", token.position));
+                    return null;
+                }
                 expr = new Or(expr, right, token.position);
             }
             return expr;
@@ -356,6 +365,11 @@ namespace Logo.Core
             {
                 Token token = acceptAdvanceToken(new TokenType[] { TokenType.AND });
                 IExpression right = parseEqual();
+                if (right == null)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Invalid AND operation!", token.position));
+                    return null;
+                }
                 expr = new AndExpresstion(expr, right, token.position);
             }
             return expr;
@@ -371,6 +385,11 @@ namespace Logo.Core
                 Token token = acceptAdvanceToken(new TokenType[] { TokenType.EQEQ, TokenType.DIFF });
                 IExpression right = parseComparison();
                 Equality.EqualityType type = (token.tokenType == TokenType.EQEQ) ? Equality.EqualityType.EQUAL : Equality.EqualityType.DIFF;
+                if (right == null)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Invalid equality operation!", token.position));
+                    return null;
+                }
                 expr = new Equality(expr, right, type, token.position);
             }
             return expr;
@@ -402,6 +421,11 @@ namespace Logo.Core
                         break;
                     default:
                         return null;
+                }
+                if (right == null)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Invalid comparation operation!", token.position));
+                    return null;
                 }
                 expr = new Comparison(expr, right, type, token.position);
             }
@@ -442,6 +466,11 @@ namespace Logo.Core
             {
                 Token token = acceptAdvanceToken(new TokenType[] { TokenType.PLUS, TokenType.MINUS });
                 IExpression right = parseMultiplicative();
+                if (right == null)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Additive operator is not valid!", token.position));
+                    return null;
+                }
                 if (token.tokenType == TokenType.PLUS)
                 {
                     expr = new Sum(expr, right, token.position);
@@ -460,12 +489,22 @@ namespace Logo.Core
             {
                 Token token = acceptAdvanceToken(new TokenType[] { TokenType.NOT });
                 IExpression expr = parseBasicExpr();
+                if (expr == null)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Not operator is not valid!", token.position));
+                    return null;
+                }
                 return new NotExpression(expr, token.position);
             }
             else if (peekToken() == TokenType.MINUS)
             {
                 Token token = acceptAdvanceToken(new TokenType[] { TokenType.MINUS });
                 IExpression expr = parseBasicExpr();
+                if (expr == null)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Negation operator is not valid!", token.position));
+                    return null;
+                }
                 return new Negation(expr, token.position);
             }
             return parseBasicExpr();

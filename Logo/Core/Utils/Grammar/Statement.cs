@@ -181,7 +181,7 @@ namespace Logo.Core.Utils.Grammar
                     variableType = VariableType.TURTLE;
                 if (val is bool)
                     variableType = VariableType.BOOL;
-                if (val is PenColor)
+                if (val is Color)
                     variableType = VariableType.COLOR;
                 scope.putVariable(new Variable(this.variable, variableType, val));
                 return null;

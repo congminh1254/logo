@@ -132,7 +132,7 @@ namespace Logo.Core
             getNextChar();
             StringBuilder sb = new StringBuilder();
             sb.Append("0x");
-            List<char> allowed_char = new List<char>() { '0', '1', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F' };
+            List<char> allowed_char = new List<char>() { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F' };
             for (int i = 0; i<6; i++)
             {
                 char c = getNextChar();

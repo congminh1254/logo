@@ -7,26 +7,9 @@ using System.Threading.Tasks;
 
 namespace Logo.Core.Utils.Grammar
 {
-    public class PenColor
-    {
-        byte a, r, g, b;
-        public PenColor(byte a, byte r, byte g, byte b)
-        {
-            this.a = a;
-            this.r = r;
-            this.g = g;
-            this.b = b;
-        }
-
-        public Color toColor()
-        {
-            return Color.FromArgb(a, r, g, b);
-        }
-    }
-
     public class TurtlePen
     {
-        public Variable color = new Variable("Color", VariableType.COLOR, new PenColor(0,0,0,0));
+        public Variable color = new Variable("Color", VariableType.COLOR, Color.Black);
         public Variable enable = new Variable("Enable", VariableType.BOOL, true);
         public Variable width = new Variable("Width", VariableType.INT, 1);
         public Variable textSize = new Variable("TextSize", VariableType.INT, 14);
@@ -51,7 +34,7 @@ namespace Logo.Core.Utils.Grammar
 
         public void set(string name, object value)
         {
-            if (name == "Color" && value is PenColor)
+            if (name == "Color" && value is Color)
             { color.value = value; return; }
             if (name == "Enable" && value is bool)
             { enable.value = value; ; return; }
@@ -185,21 +168,36 @@ namespace Logo.Core.Utils.Grammar
                 int degree = (int)this.direction.value;
                 var radians = Math.PI * degree / 180.0;
                 int size = (int)(turtlePen.width).value;
-                PenColor penColor = (PenColor)turtlePen.color.value;
+                Color penColor = (Color)turtlePen.color.value;
                 
-                Pen _pen = new Pen(penColor.toColor(), size);
+                Pen _pen = new Pen(penColor, size);
                 var cos = Math.Round(Math.Cos(radians), 2);
                 var sin = Math.Round(Math.Sin(radians), 2);
+                var tan = Math.Round(Math.Tan(radians), 2);
+
                 var x_delta = value * cos;
                 var y_delta = value * sin;
                 var cur_x = (int)x.value; var cur_y = (int)y.value;
-                using (var graphics = Graphics.FromImage(board.bitmap))
+                var new_x = cur_x + x_delta;
+                var new_y = cur_y - y_delta;
+                if (new_x > (int)board.width.value || new_x < 0)
+                {
+                    new_x = Math.Max(Math.Min(Convert.ToInt32(new_x), (int)board.width.value), 0);
+                    new_y = cur_y + tan * (cur_x - new_x);
+                }
+                if (new_y > (int)board.height.value || new_y < 0)
+                {
+                    new_y = Math.Max(Math.Min(Convert.ToInt32(new_y), (int)board.height.value), 0);
+                    new_x = cur_x + (cur_y - new_y) / tan;
+                }
+
+                    using (var graphics = Graphics.FromImage(board.bitmap))
                 {
                     if ((bool)turtlePen.enable.value)
-                        graphics.DrawLine(_pen, cur_x, cur_y, Convert.ToInt32(cur_x + x_delta), Convert.ToInt32(cur_y +y_delta));
+                        graphics.DrawLine(_pen, cur_x, cur_y, Convert.ToInt32(new_x), Convert.ToInt32(new_y));
                 }
-                x.value = Convert.ToInt32(cur_x+x_delta);
-                y.value = Convert.ToInt32(cur_y + y_delta);
+                x.value = Convert.ToInt32(new_x);
+                y.value = Convert.ToInt32(new_y);
 
             }
             return null;
@@ -213,9 +211,8 @@ namespace Logo.Core.Utils.Grammar
                 Board board = (Board)boardVar.value;
                 TurtlePen turtlePen = (TurtlePen)pen.value;
                 int size = (int)(turtlePen.width).value;
-                PenColor penColor = (PenColor)turtlePen.color.value;
-                Color color = penColor.toColor();
-                Pen _pen = new Pen(penColor.toColor(), size);
+                Color penColor = (Color)turtlePen.color.value;
+                Pen _pen = new Pen(penColor, size);
                 var cur_x = (int)x.value; var cur_y = (int)y.value;
                 var x_pos = (int)scope.getVariable("x").value;
                 var y_pos = (int)scope.getVariable("y").value;
@@ -238,10 +235,11 @@ namespace Logo.Core.Utils.Grammar
             Board board = (Board)boardVar.value;
             TurtlePen turtlePen = (TurtlePen)pen.value;
             int fontSize = (int)(turtlePen.textSize).value;
+            Color penColor = (Color)turtlePen.color.value;
             Font font = new Font("Microsoft Sans Serif",
                                  fontSize,
                                  FontStyle.Bold);
-            Brush brush = Brushes.Black;
+            Brush brush = new SolidBrush(penColor);
             int x_pos = (int)x.value;
             int y_pos = (int)y.value;
             
