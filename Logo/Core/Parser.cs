@@ -141,7 +141,7 @@ namespace Logo.Core
                     if (var != null)
                         vars.Add(var);
                     else
-                        ErrorHandling.pushError(new ErrorHandling.LogoException("Syntax Error"));
+                        ErrorHandling.pushError(new ErrorHandling.LogoException("Variable declaration is not valid", identifier.position));
                 }
             }
             acceptAdvanceToken(new TokenType[] { TokenType.RPAREN });
@@ -204,7 +204,7 @@ namespace Logo.Core
                 return null;
             }
             var token = acceptAdvanceToken(new TokenType[] { TokenType.IDENTIFIER });
-            AttrExp exp = null;
+            AttrExp leftExp = null;
             while (peekToken() == TokenType.DOT)
             {
                 acceptAdvanceToken(new TokenType[] { TokenType.DOT });
@@ -213,13 +213,13 @@ namespace Logo.Core
                     ErrorHandling.pushError(new ErrorHandling.LogoException("Error parsing attribute!", token.position));
                 }
                 Token child = acceptAdvanceToken(new TokenType[] { TokenType.IDENTIFIER });
-                if (exp == null)
+                if (leftExp == null)
                 {
-                    exp = new AttrExp(token.textValue, child.textValue);
+                    leftExp = new AttrExp(token.textValue, child.textValue);
                 }
                 else
                 {
-                    exp = new AttrExp(exp, child.textValue);
+                    leftExp = new AttrExp(leftExp, child.textValue);
                 }
             }
             if (peekToken() == TokenType.LPAREN)
@@ -227,21 +227,21 @@ namespace Logo.Core
                 acceptAdvanceToken(new TokenType[] { TokenType.LPAREN });
                 List<IExpression> args = parseFunctionCallArgs();
                 acceptAdvanceToken(new TokenType[] { TokenType.RPAREN });
-                if (exp != null)
-                    return new FunctionCallStatement(exp, args);
+                if (leftExp != null)
+                    return new FunctionCallStatement(leftExp, args);
                 return new FunctionCallStatement(token.textValue, args);
             }
             else
             {
                 acceptAdvanceToken(new TokenType[] { TokenType.EQ });
-                IExpression expr = parseExpression();
-                if (exp != null)
+                IExpression rightExp = parseExpression();
+                if (leftExp != null)
                 {
-                    exp.assigning = true;
-                    return new AssignStatement(exp, expr);
+                    leftExp.assigning = true;
+                    return new AssignStatement(leftExp, rightExp);
                 }
-                if (expr != null)
-                    return new AssignStatement(token.textValue, expr);
+                if (rightExp != null)
+                    return new AssignStatement(token.textValue, rightExp);
                 ErrorHandling.pushError(new ErrorHandling.LogoException("Assigning expression not valid!", token.position));
                 return null;
             }

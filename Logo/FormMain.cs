@@ -108,7 +108,7 @@ namespace Logo
             Lexer lexer = new Lexer(new SourceCode(Utils.stringToStreamReader(code)));
             Parser parser = new Parser(lexer);
             var result = parser.parse();
-
+            Console.WriteLine(result);
             listError.Items.Clear();
             Console.WriteLine(ErrorHandling.exceptions.Count);
             foreach (var ex in ErrorHandling.exceptions)

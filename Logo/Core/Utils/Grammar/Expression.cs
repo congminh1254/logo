@@ -5,6 +5,8 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using System.Reflection;
+
 
 namespace Logo.Core.Utils.Grammar
 {
@@ -54,6 +56,8 @@ namespace Logo.Core.Utils.Grammar
         public object Evaluate(Scope scope)
         {
             object left = this.left.Evaluate(scope);
+            if (left is bool && !(bool)left)
+                return false;
             object right = this.right.Evaluate(scope);
 
             if (left is bool && right is bool)
@@ -349,7 +353,9 @@ namespace Logo.Core.Utils.Grammar
                     }
                     else
                     {
-                        newScope.setVariable(requested_params[i].name, new Variable(requested_params[i].name, requested_params[i].variableType, arguments[i].Evaluate(scope)));
+                        newScope.setVariable(requested_params[i].name, new Variable(
+                            requested_params[i].name, 
+                            requested_params[i].variableType, arguments[i].Evaluate(scope)));
                     }
                 }
                 if (scope.contains("Board"))
@@ -458,7 +464,7 @@ namespace Logo.Core.Utils.Grammar
         public object Evaluate(Scope scope)
         {
             if (variableName != null)
-            {
+            { 
                 if (scope.getVariable(variableName) == null)
                 {
                     ErrorHandling.pushError(new ErrorHandling.LogoException("Variable not found!"));
@@ -473,6 +479,7 @@ namespace Logo.Core.Utils.Grammar
                     return obj;
                 } else if (value is Board)
                 {
+                   // value.GetType().GetProperty("VW").GetValue();
                     var obj = ((Board)value).get(child, argsCount);
                     if (obj is Variable && !assigning)
                         return ((Variable)obj).value;
@@ -551,15 +558,11 @@ namespace Logo.Core.Utils.Grammar
         public object Evaluate(Scope scope)
         {
             object right = this.right.Evaluate(scope);
-            if (right is float || right is int)
-            {
-                if (right is float)
-                    return (float)right * -1;
-                if (right is int)
-                    return (int)right * -1;
-            }
-            if (right is bool)
-                return !(bool)right;
+            if (right is float)
+                return (float)right * -1;
+            if (right is int)
+                return (int)right * -1;
+
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not negate this variable!", position));
             return null;
         }
@@ -602,11 +605,11 @@ namespace Logo.Core.Utils.Grammar
         public object Evaluate(Scope scope)
         {
             object left = this.left.Evaluate(scope);
+            if (left is bool && (bool)left)
+                return true;
             object right = this.right.Evaluate(scope);
-            if (left is bool && right is bool)
-            {
-                return (bool)left || (bool)right;
-            }
+            if (right is bool)
+                return (bool)right;
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not use OR operator with these variables!", position));
             return null;
         }

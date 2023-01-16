@@ -49,7 +49,7 @@ namespace Logo.Core.Utils
        BOOL_T,
        COLOR_T,
        TURTLE,
-       COORDINATE_T
+       COORDINATE_T,
        EOF,
        NL,
        ERROR,

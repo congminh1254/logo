@@ -83,6 +83,11 @@ namespace Logo.Core
         public Token advanceToken()
         {
             char c = getNextChar();
+            while (buildCommentToken() != null)
+            {
+                c = getNextChar();
+            }
+
             position = source.getPosition();
 
             if (c == eof)
@@ -107,10 +112,6 @@ namespace Logo.Core
                 token = new Token(result, position);
                 return token;
             }
-
-            token = buildCommentToken();
-            if (token != null)
-                return advanceToken();
 
             token = buildColorToken();
             if (token != null)
