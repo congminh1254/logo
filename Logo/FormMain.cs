@@ -113,7 +113,7 @@ namespace Logo
             Console.WriteLine(ErrorHandling.exceptions.Count);
             foreach (var ex in ErrorHandling.exceptions)
             {
-                string[] msg = new string[2] { ex.message, ex.position.ToString() };
+                string[] msg = new string[2] { ex.message, (ex.position != null ? ex.position.ToString() : "") };
                 listError.Items.Add(new ListViewItem(msg));
             }
         }

@@ -48,7 +48,7 @@ The source file must contain one unargued "main" function, it is the function fr
 ### Token
 
 ```
-"AND", "OR", "NOT", "if", "else", "while", "return", "true", "false", "int", "str", "float", "bool", "copyof",
+"AND", "OR", "NOT", "if", "else", "while", "return", "true", "false", "int", "str", "float", "bool", "color", "coordinate" "turtle_t","copyof",
 "=", ".", ".", ";", "(", ")", "{", "}", ":", "#", "_", "*", "+", "-", "/", "%", "<", ">", "<=", ">=", "==", "!=", "__"
 ```
 
@@ -94,7 +94,7 @@ number         = (digit["."digit{digit}]) | ( naturalDigit {digit} [ "." digit {
 id             = letter { digit | letter } ;
 digit          = "0".."9" ;
 naturalDigit   = "1".."9" ;
-type           = "int" | "float" | "bool" | "str" | "turtle" | "coordinate" | "color" ;
+type           = "int" | "float" | "bool" | "str" | "turtle_t" | "coordinate" | "color" ;
 color          = "0x" hex_char hex_char hex_char hex_char hex_char hex_char;
 hex_char       = "0".."9" | "a".."f" | "a".."f" ;
 string         = { letter | digit } ;
@@ -230,18 +230,83 @@ main() {
     turtle.MoveTo(0,150)
     turtle.Direction = 0
     x = 0
-    turtle.Pen.Enable = true
+turtle.Pen.Enable = true
     while x<10 {
-        if (x%2==0) {
-        turtle.Pen.Color = 0xFF0000
-        } else {
-        turtle.Pen.Color = 0x0000FF
-        }
-        turtle.Move(30)
-        x = x+1
+if (x%2==0) {
+turtle.Pen.Color = 0xFF0000
+} else {
+turtle.Pen.Color = 0x0000FF
+}
+turtle.Move(30)
+       x = x+1
     }
 }
 
+```
+
+Example 4
+```
+#__500_500__
+recur(width: int, depth: int, t: turtle_t) {
+    if (depth == 0) {
+        t.Move(width)
+    } else {
+       recur(width / 3, depth - 1, t)
+       t.Direction = (t.Direction+60)%360
+       recur(width / 3, depth - 1, t)
+       t.Direction = (t.Direction-120)%360
+       recur(width / 3, depth - 1, t)
+       t.Direction = (t.Direction+60)%360
+       recur(width / 3, depth - 1, t)
+
+    }
+}
+
+main() {
+    turtle = Turtle()
+    turtle.Pen.Enable = false
+    turtle.Pen.Color = 0xFF0000
+    turtle.MoveTo(0,250)
+    turtle.Direction = 0
+    turtle.Pen.Enable = true
+
+    recur(500, 4, turtle)
+}
+
+```
+Example 5
+```
+#__300_300__
+draw_sierpinski(length: int, depth: int, turtle: turtle_t) {
+    if (depth == 0) {
+       i = 0
+       while i < 3 {
+          i=i+1
+          turtle.Move(length)
+          turtle.Direction = (turtle.Direction+120)%360
+       }
+   } else {
+      draw_sierpinski(length/2, depth-1,turtle)
+      turtle.Move(length/2)
+      draw_sierpinski(length/2, depth-1, turtle)
+      turtle.Direction = (turtle.Direction+120)%360
+      turtle.Move(length/2)
+      turtle.Direction = (turtle.Direction-120)%360
+      draw_sierpinski(length/2, depth-1, turtle)
+      turtle.Direction = (turtle.Direction-120)%360
+      turtle.Move(length/2)
+      turtle.Direction = (turtle.Direction+120)%360
+   }
+}
+main() {
+    turtle = Turtle()
+    turtle.Pen.Enable = false
+    turtle.Pen.Color = 0xFF0000
+    turtle.MoveTo(100,150)
+    turtle.Direction = 0
+    turtle.Pen.Enable = true
+    draw_sierpinski(100, 3, turtle)
+}
 ```
 
 ### Technical detail

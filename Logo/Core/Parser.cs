@@ -284,6 +284,7 @@ namespace Logo.Core
                 {TokenType.TURTLE, VariableType.TURTLE},
                 {TokenType.BOOL_T, VariableType.BOOL},
                 {TokenType.COLOR_T, VariableType.COLOR},
+                {TokenType.COORDINATE_T, VariableType.COORDINATE},
             };
             if (mapping.ContainsKey(type.tokenType)) {
                 VariableType varType;
