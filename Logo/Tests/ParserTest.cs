@@ -81,7 +81,7 @@ namespace Logo
             Assert.IsTrue(((BlockStatement)elsebody).statements[0] is ReturnStatement);
 
             AssignStatement stat1 = (AssignStatement)((BlockStatement)body).statements[0];
-            Assert.AreEqual(stat1.variable, "a");
+            Assert.AreEqual(stat1.attr.variableName, "a");
             Assert.IsTrue(stat1.expression is Sum);
             ReturnStatement stat2 = (ReturnStatement)((BlockStatement)elsebody).statements[0];
             Assert.IsTrue(stat2.expression is Sum);
@@ -210,7 +210,7 @@ namespace Logo
             var statement = statements[0];
             Assert.IsTrue(statement is AssignStatement);
             FunctionCallExp l = ((AssignStatement)statement).expression as FunctionCallExp;
-            Assert.AreEqual(l.identifier, "Turtle");
+            Assert.AreEqual(l.attr.variableName, "Turtle");
             Assert.AreEqual(ErrorHandling.exceptions.Count, 0);
         }
 
@@ -226,7 +226,7 @@ namespace Logo
             var statement = (AssignStatement)statements[0];
             Assert.IsTrue(statement.expression is FunctionCallExp);
             var exp = (FunctionCallExp)statement.expression;
-            Assert.AreEqual(exp.identifier, "func");
+            Assert.AreEqual(exp.attr.variableName, "func");
             Assert.AreEqual(exp.arguments.Count, 5);
             Assert.AreEqual(ErrorHandling.exceptions.Count, 0);
         }

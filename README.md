@@ -66,12 +66,12 @@ statement      = ifStatement | whileStatement | returnStatement | assignStatemen
 ifStatement    = "if" condition block [ "else" block ] ;
 whileStatement = "while" "(" condition ")" block ;
 returnStatement           = "return" expression ;
-assignStatement           = id assignable ;
-functionCallStatement     = id arguments ;
+assignStatement           = attr assignable ;
+functionCallStatement     = attr arguments ;
 assignable     = assignmentOp expression ;
 expression     = multiplicativeExpr { additiveOp multiplicativeExpr };
 multiplicativeExpr        = primaryExpr { multiplicativeOp primaryExpr };
-primaryExpr    = literal | color | id | parenthExpr | functionCall ;
+primaryExpr    = literal | string | color | attr | parenthExpr | functionCall ;
 parenthExpr    = "(" expression ")" ;
 condition      = andCond { orOp andCond } ;
 andCond        = equalityCond { andOp equalityCond } ;
@@ -79,8 +79,8 @@ equalityCond   = relationalCond [ equalOp relationalCond ] ;
 relationalCond = primaryCond [ realtionOp primaryCond ] ;
 primaryCond    = [ unaryOp ] ( parenthCond | expression ) ;
 parenthCond    = "(" condition ")" ;
-signature      = type id ;
-unaryOp        = "!" ;
+signature      = id ;
+unaryOp        = "NOT" ;
 assignmentOp   = "=" ;
 orOp           = "OR";
 andOp          = "AND";
@@ -89,15 +89,15 @@ relationOp     = "<" | ">" | "<=" | ">=" ;
 additiveOp     = "+" | "-" ;
 multiplicativeOp = "*" | "/" | "%" ;
 literal        = ["-"] number;
-intNumber      = naturalDigit {digit} ;
 number         = (digit["."digit{digit}]) | ( naturalDigit {digit} [ "." digit {digit} ] ) ;
+attr           = id {"."id}
 id             = letter { digit | letter } ;
 digit          = "0".."9" ;
 naturalDigit   = "1".."9" ;
 type           = "int" | "float" | "bool" | "str" | "turtle_t" | "coordinate" | "color" ;
 color          = "0x" hex_char hex_char hex_char hex_char hex_char hex_char;
 hex_char       = "0".."9" | "a".."f" | "a".."f" ;
-string         = { letter | digit } ;
+string         = "\"" { letter | digit } "\"";
 ```
 
 ### Usage

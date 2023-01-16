@@ -58,12 +58,14 @@ namespace Logo.Core.Utils.Grammar
             object left = this.left.Evaluate(scope);
             if (left is bool && !(bool)left)
                 return false;
-            object right = this.right.Evaluate(scope);
-
-            if (left is bool && right is bool)
+            if (!(left is bool))
             {
-                return (bool)left && (bool)right;
+                ErrorHandling.pushError(new ErrorHandling.LogoException("AND statement element must be boolean datatype"));
+                return null;
             }
+            object right = this.right.Evaluate(scope);
+            if (right is bool)
+                return right;
             ErrorHandling.pushError(new ErrorHandling.LogoException("AND statement element must be boolean datatype"));
             return null;
         }
@@ -296,14 +298,8 @@ namespace Logo.Core.Utils.Grammar
 
     public class FunctionCallExp : IExpression
     {
-        public string identifier;
         public List<IExpression> arguments;
         public AttrExp attr;
-        public FunctionCallExp(string identifier, List<IExpression> arguments)
-        {
-            this.identifier = identifier;
-            this.arguments = arguments;
-        }
 
         public FunctionCallExp(AttrExp attr, List<IExpression> arguments)
         {
@@ -316,18 +312,21 @@ namespace Logo.Core.Utils.Grammar
             FunctionStatement func = null;
             ChildFunction childFunc = null;
             List<DeclarationStatement> requested_params = null;
-            if (attr != null)
+            if (attr.child != null)
             {
                 var returnedValue = attr.Evaluate(scope, arguments.Count);
+                if (returnedValue is Variable)
+                {
+                    returnedValue = ((Variable)returnedValue).value;
+                }
                 if (returnedValue is ChildFunction)
                 {
                     childFunc = (ChildFunction)returnedValue;
                     requested_params = childFunc.parameters;
                 }
-            }
-            else
+            } else
             {
-                func = FunctionStorage.getFunction(identifier);
+                func = FunctionStorage.getFunction(attr.variableName);
                 if (func != null)
                     requested_params = func.parameters;
             }
@@ -343,46 +342,44 @@ namespace Logo.Core.Utils.Grammar
                 {
                     if (arguments[i] is Identifier)
                     {
-                        var name = ((Identifier)arguments[i]).identifier;
-                        if (!scope.contains(name))
+                        AttrExp name = ((Identifier)arguments[i]).attrIdentifier;
+                        object result = name.Evaluate(scope);
+                        if (!(result is Variable))
                         {
                             ErrorHandling.pushError(new ErrorHandling.LogoException("Variable not found!"));
                             return null;
                         }
-                        newScope.setVariable(requested_params[i].name, scope.getVariable(name));
+                        newScope.setVariable(requested_params[i].name, (Variable)result);
                     }
                     else
                     {
-                        newScope.setVariable(requested_params[i].name, new Variable(
-                            requested_params[i].name, 
-                            requested_params[i].variableType, arguments[i].Evaluate(scope)));
+                        object value = arguments[i].Evaluate(scope);
+                        newScope.setVariableValue(requested_params[i].name, value);
                     }
                 }
                 if (scope.contains("Board"))
                     newScope.setVariable("Board", scope.getVariable("Board"));
-                if (childFunc != null)
-                    return childFunc.invoke(newScope);
-                else if (func != null)
-                    return func.Execute(newScope);
-            }
-            if (attr != null)
-            {
-                if (attr.variableName == "Move")
+                if (childFunc != null || func != null)
                 {
-                    executeSystemFunction(scope);
+                    object result = null;
+                    if (childFunc != null)
+                        result = childFunc.invoke(newScope);
+                    else if (func != null)
+                        result = func.Execute(newScope);
+                    if (result is ReturnStatement)
+                    {
+                        return ((ReturnStatement)result).Execute(newScope);
+                    }
+                    return result;
                 }
             }
-            if (identifier != null)
+            if (attr.parent == null)
             {
-                if (identifier.Equals("Turtle"))
+                if (attr.variableName.Equals("Turtle"))
                 {
                     return executeSystemFunction(scope);
                 }
-                if (identifier.Equals("Coordinate"))
-                {
-                    return executeSystemFunction(scope);
-                }
-                if (identifier.Equals("prompt"))
+                if (attr.variableName.Equals("Coordinate"))
                 {
                     return executeSystemFunction(scope);
                 }
@@ -393,9 +390,9 @@ namespace Logo.Core.Utils.Grammar
 
         object executeSystemFunction(Scope scope)
         {
-            if (identifier != null)
+            if (attr.parent == null)
             {
-                if (identifier.Equals("Turtle"))
+                if (attr.variableName.Equals("Turtle"))
                 {
                     if (arguments.Count != 0 && arguments.Count != 2)
                     {
@@ -410,7 +407,7 @@ namespace Logo.Core.Utils.Grammar
                     }
                     return new TurtleVar();
                 }
-                if (identifier.Equals("Coordinate"))
+                if (attr.variableName.Equals("Coordinate"))
                 {
                     if (arguments.Count != 2)
                     {
@@ -420,21 +417,6 @@ namespace Logo.Core.Utils.Grammar
                     int x = (int)arguments[0].Evaluate(scope);
                     int y = (int)arguments[1].Evaluate(scope);
                     return new Coordinate(x, y);
-                }
-                if (identifier.Equals("prompt"))
-                {
-                    return null;
-                }
-            }
-            else if (attr != null)
-            {
-                if (attr.variableName.Equals("Move"))
-                {
-
-                }
-                else if (attr.variableName.Equals("MoveTo"))
-                {
-
                 }
             }
             return null;
@@ -447,9 +429,8 @@ namespace Logo.Core.Utils.Grammar
         public IExpression parent;
         public string child;
         public int argsCount = 0;
-        public bool assigning = false;
 
-        public AttrExp(string variableName, string child)
+        public AttrExp(string variableName, string child = null)
         {
             this.variableName = variableName;
             this.child = child;
@@ -465,36 +446,43 @@ namespace Logo.Core.Utils.Grammar
         {
             if (variableName != null)
             { 
-                if (scope.getVariable(variableName) == null)
+                if (scope.getVariable(variableName) == null && child != null)
                 {
                     ErrorHandling.pushError(new ErrorHandling.LogoException("Variable not found!"));
                     return null;
                 }
-                var value = scope.getVariable(variableName).value;
-                if (value is TurtleVar)
+                
+                var variable = scope.getVariable(variableName);
+                if (variable != null && child == null)
+                    return variable;
+                if (variable != null && child != null)
                 {
-                    var obj = ((TurtleVar)value).get(child, argsCount);
-                    if (obj is Variable && !assigning)
-                        return ((Variable)obj).value;
-                    return obj;
-                } else if (value is Board)
+                    var value = variable.value;
+                    if (value is TurtleVar)
+                    {
+                        var obj = ((TurtleVar)value).get(child, argsCount);
+                        return obj;
+                    }
+                    else if (value is Board)
+                    {
+                        // value.GetType().GetProperty("VW").GetValue();
+                        var obj = ((Board)value).get(child, argsCount);
+                        return obj;
+                    }
+                } else
                 {
-                   // value.GetType().GetProperty("VW").GetValue();
-                    var obj = ((Board)value).get(child, argsCount);
-                    if (obj is Variable && !assigning)
-                        return ((Variable)obj).value;
-                    return obj;
+                    return null;
                 }
                 // TODO
                 return null;
             } else if (child != null)
             {
                 var obj = parent.Evaluate(scope);
+                if (obj is Variable)
+                    obj = ((Variable)obj).value;
                 if (obj is TurtlePen)
                 {
                     obj = ((TurtlePen)obj).get(child, argsCount);
-                    if (obj is Variable && !assigning)
-                        return ((Variable)obj).value;
                     return obj;
                     
                 }
@@ -524,23 +512,29 @@ namespace Logo.Core.Utils.Grammar
 
     public class Identifier : IExpression
     {
-        public string identifier;
-        Token token;
+        //public string identifier;
+        public AttrExp attrIdentifier;
 
-        public Identifier(string identifier, Token token)
+        //public Identifier(string identifier)
+        //{
+        //    this.identifier = identifier;
+        //}
+
+        public Identifier(AttrExp attrExp)
         {
-            this.identifier = identifier;
-            this.token = token;
+            this.attrIdentifier = attrExp;
         }
 
         public object Evaluate(Scope scope)
         {
-            if (scope.getVariable(identifier) == null)
+            var value = attrIdentifier.Evaluate(scope);
+            if (value is Variable)
+                return ((Variable)value).value;
+            if (value == null)
             {
                 ErrorHandling.pushError(new ErrorHandling.LogoException("Variable not found!"));
                 return null;
             }
-            object value = scope.getVariable(identifier).value;
             return value;
         }
     }

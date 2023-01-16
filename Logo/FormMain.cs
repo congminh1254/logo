@@ -56,7 +56,7 @@ namespace Logo
             try
             {
                 returnedValue = interpreter.Run(result, header);
-            }
+        }
             catch (Exception ex)
             {
                 MessageBox.Show("One more more errors happened on runtime.\nCheck error list for details!\n"+ex.Message, "Error", MessageBoxButtons.OK);

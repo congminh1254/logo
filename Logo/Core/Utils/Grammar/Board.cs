@@ -13,8 +13,8 @@ namespace Logo.Core.Utils.Grammar
         public Variable height;
         public Bitmap bitmap;
         public Board(int width, int height) {
-            this.width = new Variable("VW", VariableType.INT, width);
-            this.height = new Variable("VH", VariableType.INT, height);
+            this.width = new Variable(width);
+            this.height = new Variable(height);
             bitmap = new Bitmap(width, height);
             using (Graphics graph = Graphics.FromImage(bitmap))
             {

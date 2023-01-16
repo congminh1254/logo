@@ -29,10 +29,7 @@ namespace Logo.Core.Utils.Grammar
                 return returnData;
             object returned = body.Execute(scope);
             if (returned is ReturnStatement)
-            {
-                object val = ((ReturnStatement)returned).Execute(scope);
-                return val;
-            }
+                return ((ReturnStatement)returned).Execute(scope);
             // void with no return value
             return null;
         }
@@ -41,11 +38,6 @@ namespace Logo.Core.Utils.Grammar
     public class FunctionCallStatement : IStatement
     {
         public FunctionCallExp exp;
-
-        public FunctionCallStatement(string identifier, List<IExpression> arguments)
-        {
-            exp = new FunctionCallExp(identifier, arguments);
-        }
 
         public FunctionCallStatement(AttrExp identifier, List<IExpression> arguments)
         {
@@ -76,14 +68,18 @@ namespace Logo.Core.Utils.Grammar
 
         public object Execute(Scope scope)
         {
-            scope.putVariable(new Variable(this));
+            Variable var = scope.getVariable(name);
+            if (var == null)
+            {
+                scope.setVariable(name, var);
+            }
 
             if (variableType == VariableType.TURTLE)
             {
                 object val = value.Evaluate(scope);
                 if (val is TurtleVar)
                 {
-                    scope.putVariable(new Variable(name, VariableType.TURTLE, val));
+                    var.value = val;
                 }
             }
             if (value != null)
@@ -100,7 +96,7 @@ namespace Logo.Core.Utils.Grammar
                     {
                         ErrorHandling.pushError(new ErrorHandling.LogoException("New variable type is diffirence than the original type!", position));
                     }
-                    scope.putVariable(new Variable(name, variableType, val2));
+                    var.value = val2;
                 }
                 if ((val is string && variableType != VariableType.STR)
                         || (val is int && variableType != VariableType.INT)
@@ -110,7 +106,7 @@ namespace Logo.Core.Utils.Grammar
                 {
                     ErrorHandling.pushError(new ErrorHandling.LogoException("New variable type is diffirence than the original type!", position));
                 }
-                scope.putVariable(new Variable(name, variableType, val));
+                var.value = val;
             }
             return null;
         }
@@ -135,13 +131,6 @@ namespace Logo.Core.Utils.Grammar
     {
         public IExpression expression;
         public AttrExp attr;
-        public string variable;
-
-        public AssignStatement(string variable, IExpression expression)
-        {
-            this.expression = expression;
-            this.variable = variable;
-        }
 
         public AssignStatement(AttrExp attr, IExpression exp)
         {
@@ -154,45 +143,29 @@ namespace Logo.Core.Utils.Grammar
             object val = this.expression.Evaluate(scope);
             if (val is Variable)
                 val = ((Variable)val).value;
-            Variable variable;
+            Variable variable = null;
             if (attr != null)
             {
                 var returnValue = attr.Evaluate(scope);
-                if (!(returnValue is Variable))
+                if (!(returnValue is Variable) && attr.parent != null)
                 {
                     ErrorHandling.pushError(new ErrorHandling.LogoException("Can not get variable of attribute!"));
                     return null;
                 }
-                variable = (Variable) returnValue;
+                if (returnValue != null)
+                    variable = (Variable) returnValue;
             }
-            else {
-                variable = scope.getVariable(this.variable);
-            }
-            VariableType variableType = VariableType.INT;
             if (variable == null)
             {
-                if (val is string)
-                    variableType = VariableType.STR;
-                if (val is int)
-                    variableType = VariableType.INT;
-                if (val is float)
-                    variableType = VariableType.FLOAT;
-                if (val is TurtleVar)
-                    variableType = VariableType.TURTLE;
-                if (val is bool)
-                    variableType = VariableType.BOOL;
-                if (val is Color)
-                    variableType = VariableType.COLOR;
-                scope.putVariable(new Variable(this.variable, variableType, val));
+                scope.setVariableValue(attr.variableName, val);
                 return null;
             }
             
-            variableType = variable.type;
-            if ((val is string && variableType != VariableType.STR)
-                        || (val is int && variableType != VariableType.INT)
-                        || (val is float && variableType != VariableType.FLOAT)
-                        || (val is bool && variableType != VariableType.BOOL)
-                        || (val is TurtleVar && variableType != VariableType.TURTLE))
+            if ((val is string && !(variable.value is string))
+                        || (val is int && !(variable.value is int))
+                        || (val is float && !(variable.value is float))
+                        || (val is bool && !(variable.value is bool))
+                        || (val is TurtleVar && !(variable.value is TurtleVar)))
             {
                 ErrorHandling.pushError(new ErrorHandling.LogoException("New variable type is diffirence than the original type!"));
             }

@@ -222,26 +222,21 @@ namespace Logo.Core
                     leftExp = new AttrExp(leftExp, child.textValue);
                 }
             }
+            if (leftExp == null)
+                leftExp = new AttrExp(token.textValue);
             if (peekToken() == TokenType.LPAREN)
             {
                 acceptAdvanceToken(new TokenType[] { TokenType.LPAREN });
                 List<IExpression> args = parseFunctionCallArgs();
                 acceptAdvanceToken(new TokenType[] { TokenType.RPAREN });
-                if (leftExp != null)
-                    return new FunctionCallStatement(leftExp, args);
-                return new FunctionCallStatement(token.textValue, args);
+                return new FunctionCallStatement(leftExp, args);
             }
             else
             {
                 acceptAdvanceToken(new TokenType[] { TokenType.EQ });
                 IExpression rightExp = parseExpression();
-                if (leftExp != null)
-                {
-                    leftExp.assigning = true;
-                    return new AssignStatement(leftExp, rightExp);
-                }
                 if (rightExp != null)
-                    return new AssignStatement(token.textValue, rightExp);
+                    return new AssignStatement(leftExp, rightExp);
                 ErrorHandling.pushError(new ErrorHandling.LogoException("Assigning expression not valid!", token.position));
                 return null;
             }
@@ -536,9 +531,7 @@ namespace Logo.Core
             acceptAdvanceToken(new TokenType[] { TokenType.LPAREN });
             List<IExpression> args = parseFunctionCallArgs();
             acceptAdvanceToken(new TokenType[] { TokenType.RPAREN });
-            if (attr != null)
-                return new FunctionCallExp(attr, args);
-            return new FunctionCallExp(token.textValue, args);
+            return new FunctionCallExp(attr, args);
         }
 
         IExpression tryParseCopyOfIdentifier()
@@ -574,13 +567,15 @@ namespace Logo.Core
                     exp = new AttrExp(exp, child.textValue);
                 }
             }
+            if (exp == null)
+                exp = new AttrExp(token.textValue);
 
             IExpression expr = tryParseFunctionCallExpr(token, exp);
             if (expr != null)
                 return expr;
             if (exp != null)
-                return exp;
-            return new Identifier(token.textValue, token);
+                return new Identifier(exp);
+            return null;
         }
 
         IExpression tryParseVariableValue()

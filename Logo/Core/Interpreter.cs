@@ -41,11 +41,6 @@ namespace Logo.Core
             return true;
         }
 
-        public void putVariable(Variable variable)
-        {
-            variables[variable.name] = variable;
-        }
-
         public Variable getVariable(string name)
         {
             if (!contains(name))
@@ -65,6 +60,9 @@ namespace Logo.Core
             if (contains(name))
             {
                 variables[name].value = value;
+            } else
+            {
+                variables[name] = new Variable(value);
             }
         }
     }
@@ -107,7 +105,7 @@ namespace Logo.Core
             {
                 emptyScope.setVariable(
                     "Board", 
-                    new Variable("Board", VariableType.BOARD, new Board(header.width, header.height))
+                    new Variable(new Board(header.width, header.height))
                 );
             }
             var obj = functions["main"].Execute(emptyScope);

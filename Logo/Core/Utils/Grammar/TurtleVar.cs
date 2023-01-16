@@ -9,10 +9,10 @@ namespace Logo.Core.Utils.Grammar
 {
     public class TurtlePen
     {
-        public Variable color = new Variable("Color", VariableType.COLOR, Color.Black);
-        public Variable enable = new Variable("Enable", VariableType.BOOL, true);
-        public Variable width = new Variable("Width", VariableType.INT, 1);
-        public Variable textSize = new Variable("TextSize", VariableType.INT, 14);
+        public Variable color = new Variable(Color.Black);
+        public Variable enable = new Variable(true);
+        public Variable width = new Variable(1);
+        public Variable textSize = new Variable(14);
         public TurtlePen()
         {
 
@@ -48,11 +48,11 @@ namespace Logo.Core.Utils.Grammar
 
     internal class TurtleVar
     {
-        public Variable direction = new Variable("Direction", VariableType.INT, 0);
-        public Variable hidden = new Variable("Hidden", VariableType.BOOL, false);
-        public Variable pen = new Variable("Pen", VariableType.TURTLE_PEN, new TurtlePen());
-        public Variable x = new Variable("X", VariableType.INT, 0);
-        public Variable y = new Variable("Y", VariableType.INT, 0);
+        public Variable direction = new Variable(0);
+        public Variable hidden = new Variable(false);
+        public Variable pen = new Variable(new TurtlePen());
+        public Variable x = new Variable(0);
+        public Variable y = new Variable(0);
         public ChildFunction move;
         public ChildFunction moveToXY;
         public ChildFunction moveToCoord;
