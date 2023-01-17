@@ -458,15 +458,17 @@ namespace Logo.Core.Utils.Grammar
                 if (variable != null && child != null)
                 {
                     var value = variable.value;
-                    if (value is TurtleVar)
-                    {
-                        var obj = ((TurtleVar)value).get(child, argsCount);
-                        return obj;
-                    }
-                    else if (value is Board)
-                    {
-                        // value.GetType().GetProperty("VW").GetValue();
-                        var obj = ((Board)value).get(child, argsCount);
+                    if (value is TurtleVar || value is Board || value is TurtlePen) {
+                        if (value is TurtleVar && child == "MoveTo" && argsCount == 1)
+                            child = "MoveToCoord";
+                        else if (value is TurtleVar && child == "MoveTo" && argsCount == 2)
+                            child = "MoveToXY";
+                        if (value is TurtleVar && child == "Write" && argsCount == 1)
+                            child = "Write";
+                        else if (value is TurtleVar && child == "Write" && argsCount == 3)
+                            child = "WriteXY";
+                        var props = value.GetType().GetProperty(child);
+                        var obj = props.GetValue(value);
                         return obj;
                     }
                 } else
@@ -482,7 +484,8 @@ namespace Logo.Core.Utils.Grammar
                     obj = ((Variable)obj).value;
                 if (obj is TurtlePen)
                 {
-                    obj = ((TurtlePen)obj).get(child, argsCount);
+                    var props = obj.GetType().GetProperty(child);
+                    obj = props.GetValue(obj);
                     return obj;
                     
                 }

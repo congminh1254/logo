@@ -55,8 +55,8 @@
             this.btnRun});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
-            this.toolStrip1.Size = new System.Drawing.Size(962, 39);
+            this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 0, 4, 0);
+            this.toolStrip1.Size = new System.Drawing.Size(1924, 50);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -66,7 +66,7 @@
             this.btnOpenFile.Image = global::Logo.Properties.Resources.open_file;
             this.btnOpenFile.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnOpenFile.Name = "btnOpenFile";
-            this.btnOpenFile.Size = new System.Drawing.Size(36, 36);
+            this.btnOpenFile.Size = new System.Drawing.Size(46, 44);
             this.btnOpenFile.Text = "Open file";
             this.btnOpenFile.Click += new System.EventHandler(this.btnOpenFile_Click);
             // 
@@ -76,7 +76,7 @@
             this.btnSave.Image = global::Logo.Properties.Resources.save;
             this.btnSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(36, 36);
+            this.btnSave.Size = new System.Drawing.Size(46, 44);
             this.btnSave.Text = "Save";
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
@@ -86,7 +86,7 @@
             this.btnRun.Image = global::Logo.Properties.Resources.run;
             this.btnRun.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnRun.Name = "btnRun";
-            this.btnRun.Size = new System.Drawing.Size(36, 36);
+            this.btnRun.Size = new System.Drawing.Size(46, 44);
             this.btnRun.Text = "Run";
             this.btnRun.Click += new System.EventHandler(this.btnRun_Click);
             // 
@@ -107,10 +107,10 @@
             this.listError.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.listError.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.listError.HideSelection = false;
-            this.listError.Location = new System.Drawing.Point(0, 454);
-            this.listError.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.listError.Location = new System.Drawing.Point(0, 877);
+            this.listError.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.listError.Name = "listError";
-            this.listError.Size = new System.Drawing.Size(962, 98);
+            this.listError.Size = new System.Drawing.Size(1924, 185);
             this.listError.TabIndex = 2;
             this.listError.UseCompatibleStateImageBehavior = false;
             this.listError.View = System.Windows.Forms.View.Details;
@@ -134,11 +134,12 @@
             this.tableLayoutPanel1.Controls.Add(this.rtbCode, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.pbResult, 1, 0);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 39);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 50);
+            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(962, 415);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1924, 827);
             this.tableLayoutPanel1.TabIndex = 3;
             // 
             // rtbCode
@@ -146,9 +147,10 @@
             this.rtbCode.DetectUrls = false;
             this.rtbCode.Dock = System.Windows.Forms.DockStyle.Fill;
             this.rtbCode.Font = new System.Drawing.Font("Trebuchet MS", 13.85F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.rtbCode.Location = new System.Drawing.Point(3, 3);
+            this.rtbCode.Location = new System.Drawing.Point(6, 6);
+            this.rtbCode.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.rtbCode.Name = "rtbCode";
-            this.rtbCode.Size = new System.Drawing.Size(475, 409);
+            this.rtbCode.Size = new System.Drawing.Size(950, 815);
             this.rtbCode.TabIndex = 0;
             this.rtbCode.Text = resources.GetString("rtbCode.Text");
             this.rtbCode.TextChanged += new System.EventHandler(this.rtbCode_TextChanged);
@@ -156,23 +158,24 @@
             // pbResult
             // 
             this.pbResult.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbResult.Location = new System.Drawing.Point(484, 3);
+            this.pbResult.Location = new System.Drawing.Point(968, 6);
+            this.pbResult.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.pbResult.Name = "pbResult";
-            this.pbResult.Size = new System.Drawing.Size(475, 409);
+            this.pbResult.Size = new System.Drawing.Size(950, 815);
             this.pbResult.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pbResult.TabIndex = 1;
             this.pbResult.TabStop = false;
             // 
             // FormMain
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(962, 552);
+            this.ClientSize = new System.Drawing.Size(1924, 1062);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.listError);
             this.Controls.Add(this.toolStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "FormMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "TKOM Project - Logo";

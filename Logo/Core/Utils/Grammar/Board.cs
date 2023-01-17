@@ -9,12 +9,12 @@ namespace Logo.Core.Utils.Grammar
 {
     public class Board
     {
-        public Variable width;
-        public Variable height;
+        public Variable VW { get; set; }
+        public Variable VH { get; set; }
         public Bitmap bitmap;
         public Board(int width, int height) {
-            this.width = new Variable(width);
-            this.height = new Variable(height);
+            this.VW = new Variable(width);
+            this.VH = new Variable(height);
             bitmap = new Bitmap(width, height);
             using (Graphics graph = Graphics.FromImage(bitmap))
             {
@@ -23,17 +23,17 @@ namespace Logo.Core.Utils.Grammar
             }
         }
 
-        public object get(string name, int argsCount)
-        {
-            switch (name)
-            {
-                case "VW":
-                    return width;
-                case "VH":
-                    return height;
-            }
-            ErrorHandling.pushError(new ErrorHandling.LogoException("Params " + name + " of Board is not valid!"));
-            return null;
-        }
+        //public object get(string name, int argsCount)
+        //{
+        //    switch (name)
+        //    {
+        //        case "VW":
+        //            return width;
+        //        case "VH":
+        //            return height;
+        //    }
+        //    ErrorHandling.pushError(new ErrorHandling.LogoException("Params " + name + " of Board is not valid!"));
+        //    return null;
+        //}
     }
 }
