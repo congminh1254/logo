@@ -428,7 +428,6 @@ namespace Logo.Core.Utils.Grammar
         public string variableName;
         public IExpression parent;
         public string child;
-        public int argsCount = 0;
 
         public AttrExp(string variableName, string child = null)
         {
@@ -459,15 +458,12 @@ namespace Logo.Core.Utils.Grammar
                 {
                     var value = variable.value;
                     if (value is TurtleVar || value is Board || value is TurtlePen) {
-                        if (value is TurtleVar && child == "MoveTo" && argsCount == 1)
-                            child = "MoveToCoord";
-                        else if (value is TurtleVar && child == "MoveTo" && argsCount == 2)
-                            child = "MoveToXY";
-                        if (value is TurtleVar && child == "Write" && argsCount == 1)
-                            child = "Write";
-                        else if (value is TurtleVar && child == "Write" && argsCount == 3)
-                            child = "WriteXY";
                         var props = value.GetType().GetProperty(child);
+                        if (props == null)
+                        {
+                            ErrorHandling.pushError(new ErrorHandling.LogoException("Property not found!"));
+                            return null;
+                        }
                         var obj = props.GetValue(value);
                         return obj;
                     }
@@ -485,6 +481,11 @@ namespace Logo.Core.Utils.Grammar
                 if (obj is TurtlePen)
                 {
                     var props = obj.GetType().GetProperty(child);
+                    if (props == null)
+                    {
+                        ErrorHandling.pushError(new ErrorHandling.LogoException("Property not found!"));
+                        return null;
+                    }
                     obj = props.GetValue(obj);
                     return obj;
                     
@@ -497,7 +498,6 @@ namespace Logo.Core.Utils.Grammar
 
         public object Evaluate(Scope scope, int argsCount)
         {
-            this.argsCount = argsCount;
             return Evaluate(scope);
         }
     }

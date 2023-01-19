@@ -54,7 +54,7 @@ namespace Logo.Core.Utils.Grammar
         public Variable X { get; set; } = new Variable(0);
         public Variable Y { get; set; } = new Variable(0);
         public ChildFunction Move { get; private set; }
-        public ChildFunction MoveToXY { get; private set; }
+        public ChildFunction MoveTo { get; private set; }
         public ChildFunction MoveToCoord { get; private set; }
         public ChildFunction Write { get; private set; }
         public ChildFunction WriteXY { get; private set; }
@@ -77,12 +77,12 @@ namespace Logo.Core.Utils.Grammar
             {
                 new DeclarationStatement(VariableType.INT, null, "value", null, true),
             });
-            MoveToXY = new ChildFunction(this, "MoveTo", new List<DeclarationStatement>()
+            MoveTo = new ChildFunction(this, "MoveTo", new List<DeclarationStatement>()
             {
                 new DeclarationStatement(VariableType.INT, null, "x", null, true),
                 new DeclarationStatement(VariableType.INT, null, "y", null, true),
             });
-            MoveToCoord = new ChildFunction(this, "MoveTo", new List<DeclarationStatement>()
+            MoveToCoord = new ChildFunction(this, "MoveToCoord", new List<DeclarationStatement>()
             {
                 new DeclarationStatement(VariableType.COORDINATE, null, "coordinate", null, true),
             });
@@ -90,7 +90,7 @@ namespace Logo.Core.Utils.Grammar
             {
                 new DeclarationStatement(VariableType.STR, null, "value", null, true)
             });
-            WriteXY = new ChildFunction(this, "Write", new List<DeclarationStatement>()
+            WriteXY = new ChildFunction(this, "WriteXY", new List<DeclarationStatement>()
             {
                 new DeclarationStatement(VariableType.INT, null, "x", null, true),
                 new DeclarationStatement(VariableType.INT, null, "y", null, true),
