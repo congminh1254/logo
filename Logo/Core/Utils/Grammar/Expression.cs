@@ -461,7 +461,7 @@ namespace Logo.Core.Utils.Grammar
                         var props = value.GetType().GetProperty(child);
                         if (props == null)
                         {
-                            ErrorHandling.pushError(new ErrorHandling.LogoException("Property not found!"));
+                            ErrorHandling.pushError(new ErrorHandling.LogoException($"Property {child} not found!"));
                             return null;
                         }
                         var obj = props.GetValue(value);
@@ -483,7 +483,7 @@ namespace Logo.Core.Utils.Grammar
                     var props = obj.GetType().GetProperty(child);
                     if (props == null)
                     {
-                        ErrorHandling.pushError(new ErrorHandling.LogoException("Property not found!"));
+                        ErrorHandling.pushError(new ErrorHandling.LogoException($"Property {child} not found "));
                         return null;
                     }
                     obj = props.GetValue(obj);
