@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
+using Logo.Core.Utils.Grammar;
 
 namespace Logo.Core.Utils
 {
@@ -13,6 +15,7 @@ namespace Logo.Core.Utils
         public string textValue { get; private set; } = null;
         public int? intValue { get; private set; } = null;
         public float? floatValue { get; private set; } = null;
+        public Color? colorValue { get; private set; } = null;
 
         public Token(TokenType tokenType, Position position)
         {
@@ -85,6 +88,26 @@ namespace Logo.Core.Utils
             }
             this.tokenType = tokenType;
             this.floatValue = floatValue;
+        }
+
+        public Token(TokenType tokenType, Position position, Color color)
+        {
+            if (position == null)
+            {
+                this.tokenType = TokenType.ERROR;
+                this.textValue = "Missing possition for this token.";
+                return;
+            }
+            this.position = position;
+
+            if (tokenType != TokenType.COLOR)
+            {
+                this.tokenType = TokenType.ERROR;
+                this.textValue = "Token type must be COLOR.";
+                return;
+            }
+            this.tokenType = tokenType;
+            this.colorValue = color;
         }
 
         public override string ToString()

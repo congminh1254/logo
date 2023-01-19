@@ -4,6 +4,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using System.Reflection;
+
 
 namespace Logo.Core.Utils.Grammar
 {
@@ -27,7 +30,8 @@ namespace Logo.Core.Utils.Grammar
             if (token.tokenType == TokenType.STR)
             {
                 string s = (string)value;
-                return s.Substring(1, s.Length - 2);
+                // return s.Substring(1, s.Length - 2);
+                return s;
             }
             return value;
         }
@@ -52,12 +56,16 @@ namespace Logo.Core.Utils.Grammar
         public object Evaluate(Scope scope)
         {
             object left = this.left.Evaluate(scope);
-            object right = this.right.Evaluate(scope);
-
-            if (left is bool && right is bool)
+            if (left is bool && !(bool)left)
+                return false;
+            if (!(left is bool))
             {
-                return (bool)left && (bool)right;
+                ErrorHandling.pushError(new ErrorHandling.LogoException("AND statement element must be boolean datatype"));
+                return null;
             }
+            object right = this.right.Evaluate(scope);
+            if (right is bool)
+                return right;
             ErrorHandling.pushError(new ErrorHandling.LogoException("AND statement element must be boolean datatype"));
             return null;
         }
@@ -90,8 +98,16 @@ namespace Logo.Core.Utils.Grammar
 
             if (Utils.IsNumber(left) && Utils.IsNumber(right))
             {
-                float leftValue = (float)left;
-                float rightValue = (float)right;
+                float leftValue = 0;
+                if (left is int)
+                    leftValue = (int)left;
+                else if (left is float)
+                    leftValue = (float)left;
+                float rightValue = 0;
+                if (right is int)
+                    rightValue = (int)right;
+                else if (right is float)
+                    rightValue = (float)right;
 
                 bool equals = (leftValue == rightValue);
                 bool leftIsLessThanRight = (leftValue < rightValue);
@@ -134,11 +150,21 @@ namespace Logo.Core.Utils.Grammar
         {
             object left = this.left.Evaluate(scope);
             object right = this.right.Evaluate(scope);
-            if ((left is int && left is float) || (right is int && right is float))
+            if (left is int && right is int)
             {
-                if (left is float || right is float)
-                    return (float)left * (float)right;
                 return (int)left * (int)right;
+            }
+            if (left is float && right is float)
+            {
+                return (float)left * (float)right;
+            }
+            if (left is int && right is float)
+            {
+                return (int)left * (float)right;
+            }
+            if (left is float && right is int)
+            {
+                return (float)left * (int)right;
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not multiplication this two value", position));
             return null;
@@ -160,9 +186,21 @@ namespace Logo.Core.Utils.Grammar
         {
             object left = this.left.Evaluate(scope);
             object right = this.right.Evaluate(scope);
-            if ((left is int && left is float) || (right is int && right is float))
+            if (left is int && right is int)
+            {
+                return (int)left / (int)right;
+            }
+            if (left is float && right is float)
             {
                 return (float)left / (float)right;
+            }
+            if (left is int && right is float)
+            {
+                return (int)left / (float)right;
+            }
+            if (left is float && right is int)
+            {
+                return (float)left / (int)right;
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not divide this two value", position));
             return null;
@@ -184,9 +222,21 @@ namespace Logo.Core.Utils.Grammar
         {
             object left = this.left.Evaluate(scope);
             object right = this.right.Evaluate(scope);
-            if ((left is int && left is float) || (right is int && right is float))
+            if (left is int && right is int)
+            {
+                return (int)left % (int)right;
+            }
+            if (left is float && right is float)
             {
                 return (float)left % (float)right;
+            }
+            if (left is int && right is float)
+            {
+                return (int)left % (float)right;
+            }
+            if (left is float && right is int)
+            {
+                return (float)left % (int)right;
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not divide this two value", position));
             return null;
@@ -221,9 +271,21 @@ namespace Logo.Core.Utils.Grammar
             {
                 return checkingEqual == ((bool)left == (bool)right);
             }
-            if ((left is int || left is float) && (right is int || right is float))
+            if (left is int && right is int)
             {
-                return checkingEqual == ((float)left == (float)right);
+                return (int)left == (int)right;
+            }
+            if (left is float && right is float)
+            {
+                return (float)left == (float)right;
+            }
+            if (left is int && right is float)
+            {
+                return (int)left == (float)right;
+            }
+            if (left is float && right is int)
+            {
+                return (float)left == (int)right;
             }
             if (left is string && right is string)
             {
@@ -236,43 +298,245 @@ namespace Logo.Core.Utils.Grammar
 
     public class FunctionCallExp : IExpression
     {
-        public string identifier;
         public List<IExpression> arguments;
-        public FunctionCallExp(string identifier, List<IExpression> arguments)
+        public AttrExp attr;
+
+        public FunctionCallExp(AttrExp attr, List<IExpression> arguments)
         {
-            this.identifier = identifier;
+            this.attr = attr;
             this.arguments = arguments;
         }
 
         public object Evaluate(Scope scope)
         {
-            FunctionStatement func = FunctionStorage.getFunction(identifier);
-            if (func != null)
+            FunctionStatement func = null;
+            ChildFunction childFunc = null;
+            List<DeclarationStatement> requested_params = null;
+            if (attr.child != null)
             {
-                return func.Execute(scope, arguments);
+                var returnedValue = attr.Evaluate(scope, arguments.Count);
+                if (returnedValue is Variable)
+                {
+                    returnedValue = ((Variable)returnedValue).value;
+                }
+                if (returnedValue is ChildFunction)
+                {
+                    childFunc = (ChildFunction)returnedValue;
+                    requested_params = childFunc.parameters;
+                }
+            } else
+            {
+                func = FunctionStorage.getFunction(attr.variableName);
+                if (func != null)
+                    requested_params = func.parameters;
+            }
+            if (requested_params != null)
+            {
+                Scope newScope = new Scope();
+                if (requested_params.Count != arguments.Count)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Provided arguments is not matched with Function declaration!"));
+                    return null;
+                }
+                for (int i = 0; i < requested_params.Count; i++)
+                {
+                    if (arguments[i] is Identifier)
+                    {
+                        AttrExp name = ((Identifier)arguments[i]).attrIdentifier;
+                        object result = name.Evaluate(scope);
+                        if (!(result is Variable))
+                        {
+                            ErrorHandling.pushError(new ErrorHandling.LogoException("Variable not found!"));
+                            return null;
+                        }
+                        newScope.setVariable(requested_params[i].name, (Variable)result);
+                    }
+                    else
+                    {
+                        object value = arguments[i].Evaluate(scope);
+                        newScope.setVariableValue(requested_params[i].name, value);
+                    }
+                }
+                if (scope.contains("Board"))
+                    newScope.setVariable("Board", scope.getVariable("Board"));
+                if (childFunc != null || func != null)
+                {
+                    object result = null;
+                    if (childFunc != null)
+                        result = childFunc.invoke(newScope);
+                    else if (func != null)
+                        result = func.Execute(newScope);
+                    if (result is ReturnStatement)
+                    {
+                        return ((ReturnStatement)result).Execute(newScope);
+                    }
+                    return result;
+                }
+            }
+            if (attr.parent == null)
+            {
+                if (attr.variableName.Equals("Turtle"))
+                {
+                    return executeSystemFunction(scope);
+                }
+                if (attr.variableName.Equals("Coordinate"))
+                {
+                    return executeSystemFunction(scope);
+                }
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Function not found!"));
             return null;
+        }
+
+        object executeSystemFunction(Scope scope)
+        {
+            if (attr.parent == null)
+            {
+                if (attr.variableName.Equals("Turtle"))
+                {
+                    if (arguments.Count != 0 && arguments.Count != 2)
+                    {
+                        ErrorHandling.pushError(new ErrorHandling.LogoException("Turtle type only must have 0 or 2 params!"));
+                        return null;
+                    }
+                    if (arguments.Count == 2)
+                    {
+                        int x = (int)arguments[0].Evaluate(scope);
+                        int y = (int)arguments[1].Evaluate(scope);
+                        return new TurtleVar(x, y);
+                    }
+                    return new TurtleVar();
+                }
+                if (attr.variableName.Equals("Coordinate"))
+                {
+                    if (arguments.Count != 2)
+                    {
+                        ErrorHandling.pushError(new ErrorHandling.LogoException("Coordinate type only must have 2 params!"));
+                        return null;
+                    }
+                    int x = (int)arguments[0].Evaluate(scope);
+                    int y = (int)arguments[1].Evaluate(scope);
+                    return new Coordinate(x, y);
+                }
+            }
+            return null;
+        }
+    }
+
+    public class AttrExp: IExpression
+    {
+        public string variableName;
+        public IExpression parent;
+        public string child;
+
+        public AttrExp(string variableName, string child = null)
+        {
+            this.variableName = variableName;
+            this.child = child;
+        }
+
+        public AttrExp(IExpression parent, string child)
+        {
+            this.parent = parent;
+            this.child = child;
+        }
+
+        public object Evaluate(Scope scope)
+        {
+            if (variableName != null)
+            { 
+                if (scope.getVariable(variableName) == null && child != null)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Variable not found!"));
+                    return null;
+                }
+                
+                var variable = scope.getVariable(variableName);
+                if (variable != null && child == null)
+                    return variable;
+                if (variable != null && child != null)
+                {
+                    var value = variable.value;
+                    if (value is TurtleVar || value is Board || value is TurtlePen) {
+                        var props = value.GetType().GetProperty(child);
+                        if (props == null)
+                        {
+                            ErrorHandling.pushError(new ErrorHandling.LogoException($"Property {child} not found!"));
+                            return null;
+                        }
+                        var obj = props.GetValue(value);
+                        return obj;
+                    }
+                } else
+                {
+                    return null;
+                }
+                // TODO
+                return null;
+            } else if (child != null)
+            {
+                var obj = parent.Evaluate(scope);
+                if (obj is Variable)
+                    obj = ((Variable)obj).value;
+                if (obj is TurtlePen)
+                {
+                    var props = obj.GetType().GetProperty(child);
+                    if (props == null)
+                    {
+                        ErrorHandling.pushError(new ErrorHandling.LogoException($"Property {child} not found "));
+                        return null;
+                    }
+                    obj = props.GetValue(obj);
+                    return obj;
+                    
+                }
+                // TODO
+                return null;
+            }
+            return null;
+        }
+
+        public object Evaluate(Scope scope, int argsCount)
+        {
+            return Evaluate(scope);
+        }
+    }
+
+    public class CopyOfExp: IExpression {
+        public string identifier;
+        
+        public CopyOfExp(string identifier) { this.identifier = identifier; }
+
+        public object Evaluate(Scope scope)
+        {
+            return scope.getVariable(identifier).value;
         }
     }
 
     public class Identifier : IExpression
     {
-        public string identifier;
-        Token token;
+        //public string identifier;
+        public AttrExp attrIdentifier;
 
-        public Identifier(string identifier, Token token)
+        //public Identifier(string identifier)
+        //{
+        //    this.identifier = identifier;
+        //}
+
+        public Identifier(AttrExp attrExp)
         {
-            this.identifier = identifier;
-            this.token = token;
+            this.attrIdentifier = attrExp;
         }
 
         public object Evaluate(Scope scope)
         {
-            object value = scope.getVariable(identifier).value;
+            var value = attrIdentifier.Evaluate(scope);
+            if (value is Variable)
+                return ((Variable)value).value;
             if (value == null)
             {
                 ErrorHandling.pushError(new ErrorHandling.LogoException("Variable not found!"));
+                return null;
             }
             return value;
         }
@@ -291,15 +555,11 @@ namespace Logo.Core.Utils.Grammar
         public object Evaluate(Scope scope)
         {
             object right = this.right.Evaluate(scope);
-            if (right is float || right is int)
-            {
-                if (right is float)
-                    return (float)right * -1;
-                if (right is int)
-                    return (int)right * -1;
-            }
-            if (right is bool)
-                return !(bool)right;
+            if (right is float)
+                return (float)right * -1;
+            if (right is int)
+                return (int)right * -1;
+
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not negate this variable!", position));
             return null;
         }
@@ -342,11 +602,11 @@ namespace Logo.Core.Utils.Grammar
         public object Evaluate(Scope scope)
         {
             object left = this.left.Evaluate(scope);
+            if (left is bool && (bool)left)
+                return true;
             object right = this.right.Evaluate(scope);
-            if (left is bool && right is bool)
-            {
-                return (bool)left || (bool)right;
-            }
+            if (right is bool)
+                return (bool)right;
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not use OR operator with these variables!", position));
             return null;
         }
@@ -367,9 +627,21 @@ namespace Logo.Core.Utils.Grammar
         {
             object left = this.left.Evaluate(scope);
             object right = this.right.Evaluate(scope);
-            if ((left is int || left is float) && (right is int || right is float))
+            if (left is int && right is int)
+            {
+                return (int)left - (int)right;
+            }
+            if (left is float && right is float)
             {
                 return (float)left - (float)right;
+            }
+            if (left is int && right is float)
+            {
+                return (int)left - (float)right;
+            }
+            if (left is float && right is int)
+            {
+                return (float)left - (int)right;
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not use subtract operator with these variables!", position));
             return null;
@@ -391,9 +663,41 @@ namespace Logo.Core.Utils.Grammar
         {
             object left = this.left.Evaluate(scope);
             object right = this.right.Evaluate(scope);
-            if ((left is int || left is float) && (right is int || right is float))
+            if (left is int && right is int)
+            {
+                return (int)left + (int)right;
+            }
+            if (left is float && right is float)
             {
                 return (float)left + (float)right;
+            }
+            if (left is int && right is float)
+            {
+                return (int)left + (float)right;
+            }
+            if (left is float && right is int)
+            {
+                return (float)left + (int)right;
+            }
+            if (left is string && right is string)
+            {
+                return (string)left + (string)right;
+            }
+            if (left is string && right is int)
+            {
+                return (string)left + (int)right;
+            }
+            if (left is string && right is float)
+            {
+                return (string)left + (float)right;
+            }
+            if (left is int && right is string)
+            {
+                return (int)left + (string)right;
+            }
+            if (left is float && right is string)
+            {
+                return (float)left + (string)right;
             }
             ErrorHandling.pushError(new ErrorHandling.LogoException("Can not use sum operator with these variables!", position));
             return null;

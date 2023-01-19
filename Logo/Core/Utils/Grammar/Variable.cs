@@ -12,34 +12,24 @@ namespace Logo.Core.Utils.Grammar
         FLOAT,
         STR,
         TURTLE,
-        BOOL
+        BOOL,
+        TURTLE_PEN,
+        COORDINATE,
+        COLOR,
+        BOARD
     }
-    public class Variable : IExpression
+    public class Variable: IExpression
     {
-        public string name;
-        public VariableType type;
-        public object value;
-        public Variable(string name, VariableType type)
-        {
-            this.name = name;
-            this.type = type;
-        }
+        public object value { get; set; }
 
-        public Variable(string name, VariableType type, object value) : this(name, type)
+        public Variable(object value)
         {
             this.value = value;
         }
 
-        public Variable(DeclarationStatement statement)
-        {
-            this.name = statement.name;
-            this.type = statement.variableType;
-            this.value = null;
-        }
-
         public object Evaluate(Scope scope)
         {
-            return null;
+            return value;
         }
     }
 }

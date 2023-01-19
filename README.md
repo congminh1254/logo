@@ -1,92 +1,329 @@
-# Logo
+# Logo - Final Documentation
 
+```
+Minh Nguyen Cong
+317077
+15/01/2022
+```
 
+## General
+Creating a new language call as LOGO with turtles drawing on a board, with interpreter using C# and an interface build with .NET Window Form.
+
+Language can do:
+
+- Define function
+- Define variables (int, float, string, turtle, ...)
+- With Turtle object, can do action like Draw, Write, ... and get output as Image.
 
 ## Getting started
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+To get started with Logo, first clone this repository and setup development environment.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### Prerequisites:
 
-## Add your files
+Tools:
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+- Visual Studio
+- Opencover (optional)
+- ReportGenerator (optional)
+
+Library:
+
+- .NET Framework 3.7.2
+
+### Starting project
+
+To start the project, open the `Logo.sln` file with Visual Studio, build and run the solution.
+
+Working screen:
+![](https://i.imgur.com/Bc2AVT1.png)
+
+
+## Logo language
+
+In the language we have variable int, float, str (string), turtle (Turtle), color, coordinate.
+
+The source file must contain one unargued "main" function, it is the function from which program execution begins. If function does not return anything so it will return null by default. Variables are passed to functions by reference, to create copy of variable, use syntax `copyof variable`. The interpreter does not allow you to declare global variables.
+
+### Token
 
 ```
-cd existing_repo
-git remote add origin https://gitlab-stud.elka.pw.edu.pl/TKOM_22Z_PG/Minh_Nguyen_Cong/logo.git
-git branch -M main
-git push -uf origin main
+"AND", "OR", "NOT", "if", "else", "while", "return", "true", "false", "int", "str", "float", "bool", "color", "coordinate" "turtle_t","copyof",
+"=", ".", ".", ";", "(", ")", "{", "}", ":", "#", "_", "*", "+", "-", "/", "%", "<", ">", "<=", ">=", "==", "!=", "__"
 ```
 
-## Integrate with your tools
+### Grammar
 
-- [ ] [Set up project integrations](https://gitlab-stud.elka.pw.edu.pl/TKOM_22Z_PG/Minh_Nguyen_Cong/logo/-/settings/integrations)
+```
+program        = header { functionDef } ;
+header         = "#__" intNumber "_" intNumber "__"
+functionDef    = signature parameters block ;
+parameters     = "(" [ parameter { "," parameter } ] ")";
+arguments      = "(" [ expression { "," expression } ] ")" ;
+parameter      = signature ":" type;
+block          = "{" {statement} "}";
+statement      = ifStatement | whileStatement | returnStatement | assignStatement | functionCallStatement;
+ifStatement    = "if" condition block [ "else" block ] ;
+whileStatement = "while" "(" condition ")" block ;
+returnStatement           = "return" expression ;
+assignStatement           = attr assignable ;
+functionCallStatement     = attr arguments ;
+assignable     = assignmentOp expression ;
+expression     = multiplicativeExpr { additiveOp multiplicativeExpr };
+multiplicativeExpr        = primaryExpr { multiplicativeOp primaryExpr };
+primaryExpr    = literal | string | color | attr | parenthExpr | functionCall ;
+parenthExpr    = "(" expression ")" ;
+condition      = andCond { orOp andCond } ;
+andCond        = equalityCond { andOp equalityCond } ;
+equalityCond   = relationalCond [ equalOp relationalCond ] ;
+relationalCond = primaryCond [ realtionOp primaryCond ] ;
+primaryCond    = [ unaryOp ] ( parenthCond | expression ) ;
+parenthCond    = "(" condition ")" ;
+signature      = id ;
+unaryOp        = "NOT" ;
+assignmentOp   = "=" ;
+orOp           = "OR";
+andOp          = "AND";
+equalOp        = "==" | "!=";
+relationOp     = "<" | ">" | "<=" | ">=" ;
+additiveOp     = "+" | "-" ;
+multiplicativeOp = "*" | "/" | "%" ;
+literal        = ["-"] number;
+number         = (digit["."digit{digit}]) | ( naturalDigit {digit} [ "." digit {digit} ] ) ;
+attr           = id {"."id}
+id             = letter { digit | letter } ;
+digit          = "0".."9" ;
+naturalDigit   = "1".."9" ;
+type           = "int" | "float" | "bool" | "str" | "turtle_t" | "coordinate" | "color" ;
+color          = "0x" hex_char hex_char hex_char hex_char hex_char hex_char;
+hex_char       = "0".."9" | "a".."f" | "a".."f" ;
+string         = "\"" { letter | digit } "\"";
+```
 
-## Collaborate with your team
+### Usage
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+#### Rule
+* Single command per line, no need to use semicolon.
+* String need to be wrap in quote mark `"`.
+* Define variable must have initial value.
+* First line of file ***must*** be `#___width_height___`, with the width and height of the output image, also the size for the playground of turtle. The value can read from code by name `Board.VW` and `Board.VH`.
+* The turtle will stop if it try to move outside of the border.
 
-## Test and Deploy
 
-Use the built-in continuous integration in GitLab.
+#### Predefined function and variable
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+- `copyof <expression>`: Return copied instance of a expression.
+- `<turtle name> = Turtle()`: Create new turtle.
+- `turtle.Pen.Color = 0xAABBCC`: Set color of turtle's pen.
+- `turtle.Pen.Enable = True`: Set turtle drawing on/off.
+- `turtle.Pen.Width = 1`: Size of turtle drawing.
+- `turtle.Pen.TextSize = 10`: Size of turtle text.
+- `turtle.Direction = 100`: Change direction of the turtle by 100 degree.
+- `turtle.Hidden = False`: Change the visibility of the turtle icon on the final image.
+- `turtle.Move(100)`: Turtle move to the current direction by 100 pixels.
+- `turtle.MoveTo(100,100)`: Turtle move to point (100, 100) on the image.
+- `turtle.MoveTo(coordinate)`: Turtle move to a coordinate on the image.
+- `turtle.Write("Some Text")`: Turtle will write some text to image.
+- `turtle.Write(1, 3, "Abc")`: Turtle will write text at specified position.
 
-***
+#### Variable
+For every variable, data type can not be changed after defined.
+Variable define only valid in the block
+Define, assign:
+```
+x = 1
+y = 0x00FF00
+y.R = 100 * 0.25 ~~ Can be from 0 - 254
+y = y * 0.25
+coor = Coordinate(x, y)
+```
 
-# Editing this README
+Data types: bool, integer, float, string, Turtle (contains Pen, Direction), Coordinate, Board, Color.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+#### Calculation, comparation
+We support the basic math operation for integer number: `+`, `-`, `*`, `/` (auto rounded to rearest integer), `%` (devision with remainder).
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+For string, we support concat string by `+` operator (also string with number).
 
-## Name
-Choose a self-explaining name for your project.
+Comparation: `>`, `<`, `>=`, `<=` (number) and `==`, `!=`,  for number and string, color, coordinates.
+Logic: `AND`, `OR`, `NOT` (can only work with boolean).
+Negative negation: `-`.
+Math and logic ordering by `(` and `)`.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+#### Looping
+```
+while turtle.Position.X < Board.VW {
+    turtle.Move(1)
+}
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+#### Conditional statement
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+```
+x = 1
+if turtle.Position.X < Board.VW {
+    turtle.MoveTo(100, 100)
+} else { ~~~ optional
+    turtle.Move()
+}
+```
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+#### Function
+Function arguments will pass by reference, not by value.
+```
+function_name(x: int, y: int) {
+    x = x+1
+    return x+y
+}
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+main() {
+    g = 10
+    h = 20
+    function_name(copyof g, h)
+}
+```
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+#### Example code
+Example 1:
+```
+#__300_300__
+main() {
+    turtle = Turtle()
+    turtle.Pen.Enable = false
+    turtle.Pen.Color = 0xFF0000
+    turtle.MoveTo(100,150)
+    turtle.Direction = 72
+    turtle.Pen.Enable = true
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+    x = 0
+    while x<5 {
+        turtle.Move(100)
+        turtle.Direction = (turtle.Direction+216)%360
+        x = x+1
+    }
+}
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Example 2
+```
+#__300_300__
+main() {
+    turtle = Turtle()
+    turtle.Pen.Enable = true
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+    x = -150
+    while x<300 {
+        y=-x*x/50
+        turtle.MoveTo(x+150, y+150)
+        x = x+1
+    }
+}
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+```
+Example 3
+```
+#__300_300__
+main() {
+    turtle = Turtle()
+    turtle.Pen.Enable = false
+    turtle.MoveTo(0,150)
+    turtle.Direction = 0
+    x = 0
+turtle.Pen.Enable = true
+    while x<10 {
+if (x%2==0) {
+turtle.Pen.Color = 0xFF0000
+} else {
+turtle.Pen.Color = 0x0000FF
+}
+turtle.Move(30)
+       x = x+1
+    }
+}
 
-## License
-For open source projects, say how it is licensed.
+```
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Example 4
+```
+#__500_500__
+recur(width: int, depth: int, t: turtle_t) {
+    if (depth == 0) {
+        t.Move(width)
+    } else {
+       recur(width / 3, depth - 1, t)
+       t.Direction = (t.Direction+60)%360
+       recur(width / 3, depth - 1, t)
+       t.Direction = (t.Direction-120)%360
+       recur(width / 3, depth - 1, t)
+       t.Direction = (t.Direction+60)%360
+       recur(width / 3, depth - 1, t)
+
+    }
+}
+
+main() {
+    turtle = Turtle()
+    turtle.Pen.Enable = false
+    turtle.Pen.Color = 0xFF0000
+    turtle.MoveTo(0,250)
+    turtle.Direction = 0
+    turtle.Pen.Enable = true
+
+    recur(500, 4, turtle)
+}
+
+```
+Example 5
+```
+#__300_300__
+draw_sierpinski(length: int, depth: int, turtle: turtle_t) {
+    if (depth == 0) {
+       i = 0
+       while i < 3 {
+          i=i+1
+          turtle.Move(length)
+          turtle.Direction = (turtle.Direction+120)%360
+       }
+   } else {
+      draw_sierpinski(length/2, depth-1,turtle)
+      turtle.Move(length/2)
+      draw_sierpinski(length/2, depth-1, turtle)
+      turtle.Direction = (turtle.Direction+120)%360
+      turtle.Move(length/2)
+      turtle.Direction = (turtle.Direction-120)%360
+      draw_sierpinski(length/2, depth-1, turtle)
+      turtle.Direction = (turtle.Direction-120)%360
+      turtle.Move(length/2)
+      turtle.Direction = (turtle.Direction+120)%360
+   }
+}
+main() {
+    turtle = Turtle()
+    turtle.Pen.Enable = false
+    turtle.Pen.Color = 0xFF0000
+    turtle.MoveTo(100,150)
+    turtle.Direction = 0
+    turtle.Pen.Enable = true
+    draw_sierpinski(100, 3, turtle)
+}
+```
+
+### Technical detail
+
+The project is implemented in C# using the .NET Framework. The NTest library was used for unit tests.
+
+#### Test
+
+Testing of this project includes:
+
+- Lexer Test: 15 tests.
+Check the correctness of the lexical parse.
+- Parser Test: 10 tests.
+Check the correctness of the parser.
+- Interpreter Test: 20 tests.
+Check the correctness of the Interpreter.
+
+Project using `NUnit` as test library.
+
+Coverage: 65%.

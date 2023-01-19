@@ -32,14 +32,16 @@ namespace Logo.Core
             { "str", TokenType.STR_T },
             { "float", TokenType.FLOAT_T },
             { "bool",  TokenType.BOOL_T },
-            { "Turtle", TokenType.TURTLE },
+            { "turtle_t", TokenType.TURTLE },
+            { "color", TokenType.COLOR_T },
+            { "coordinate", TokenType.COORDINATE_T },
+            { "copyof", TokenType.COPYOF }
         };
         Dictionary<char, TokenType> singleChar = new Dictionary<char, TokenType>()
         {
             { '=', TokenType.EQ },
             { '.', TokenType.DOT },
             { ',', TokenType.COMMA },
-            { ';', TokenType.SEMI},
             { '(', TokenType.LPAREN},
             { ')', TokenType.RPAREN },
             { '{', TokenType.LCURLY },
@@ -63,7 +65,7 @@ namespace Logo.Core
             { ">=", TokenType.GE },
             { "==", TokenType.EQEQ },
             { "!=", TokenType.DIFF},
-            { "__", TokenType.UU }
+            { "__", TokenType.UU },
         };
         char quoteMark = '"';
 
@@ -81,6 +83,11 @@ namespace Logo.Core
         public Token advanceToken()
         {
             char c = getNextChar();
+            while (buildCommentToken() != null)
+            {
+                c = getNextChar();
+            }
+
             position = source.getPosition();
 
             if (c == eof)
@@ -106,6 +113,10 @@ namespace Logo.Core
                 return token;
             }
 
+            token = buildColorToken();
+            if (token != null)
+                return token;
+
             token = buildStringToken();
             if (token != null)
                 return token;
@@ -118,6 +129,45 @@ namespace Logo.Core
 
             token = new Token(TokenType.ERROR, source.getPosition(), "Token not valid!");
             return token;
+        }
+
+        Token buildCommentToken()
+        {
+            if (source.getCurrChar() != '~' || source.peekChar() != '~')
+                return null;
+            getNextChar();
+            getNextChar();
+            StringBuilder sb = new StringBuilder();
+            while(source.getCurrChar() != eof && source.getCurrChar() != newline)
+            {
+                char c = source.getNextChar();
+                sb.Append(c);
+            }
+            return new Token(TokenType.COMMENT, position, sb.ToString());
+        }
+
+        Token buildColorToken()
+        {
+            if (source.getCurrChar() != '0' || source.peekChar() != 'x')
+                return null;
+            getNextChar();
+            StringBuilder sb = new StringBuilder();
+            sb.Append("0x");
+            List<char> allowed_char = new List<char>() { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F' };
+            for (int i = 0; i<6; i++)
+            {
+                char c = getNextChar();
+                if (!allowed_char.Contains(c))
+                {
+                    token = new Token(TokenType.ERROR, position, "Color Token not valid!");
+                    return token;
+                } else
+                {
+                    sb.Append(c);
+                }
+            }
+            uint int_color = Convert.ToUInt32(sb.ToString(), 16);
+            return new Token(TokenType.COLOR, position, int_color.ToColor());
         }
 
         Token buildStringToken()
