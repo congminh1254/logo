@@ -88,9 +88,9 @@ equalOp        = "==" | "!=";
 relationOp     = "<" | ">" | "<=" | ">=" ;
 additiveOp     = "+" | "-" ;
 multiplicativeOp = "*" | "/" | "%" ;
-literal        = ["-"] number;
+literal        = number;
 number         = (digit["."digit{digit}]) | ( naturalDigit {digit} [ "." digit {digit} ] ) ;
-attr           = id {"."id}
+attr           = id [arguments] {"."id}
 id             = letter { digit | letter } ;
 digit          = "0".."9" ;
 naturalDigit   = "1".."9" ;
@@ -122,13 +122,13 @@ string         = "\"" { letter | digit } "\"";
 - `turtle.Hidden = False`: Change the visibility of the turtle icon on the final image.
 - `turtle.Move(100)`: Turtle move to the current direction by 100 pixels.
 - `turtle.MoveTo(100,100)`: Turtle move to point (100, 100) on the image.
-- `turtle.MoveTo(coordinate)`: Turtle move to a coordinate on the image.
+- `turtle.MoveToCoord(coordinate)`: Turtle move to a coordinate on the image.
 - `turtle.Write("Some Text")`: Turtle will write some text to image.
-- `turtle.Write(1, 3, "Abc")`: Turtle will write text at specified position.
+- `turtle.WriteXY(1, 3, "Abc")`: Turtle will write text at specified position.
 
 #### Variable
 For every variable, data type can not be changed after defined.
-Variable define only valid in the block
+Variable define only valid in the function scope
 Define, assign:
 ```
 x = 1
