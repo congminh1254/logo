@@ -14,7 +14,6 @@ namespace Logo.Core.Utils
        EQ,
        DOT,
        COMMA,
-       SEMI,
        LPAREN,
        RPAREN,
        LCURLY,
@@ -43,15 +42,20 @@ namespace Logo.Core.Utils
        INT,
        STR,
        FLOAT,
+       COLOR,
        INT_T,
        FLOAT_T,
        STR_T,
        BOOL_T,
+       COLOR_T,
        TURTLE,
+       COORDINATE_T,
        EOF,
        NL,
        ERROR,
        IDENTIFIER,
        NULL,
+       COPYOF,
+       COMMENT
     }
 }

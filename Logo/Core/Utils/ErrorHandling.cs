@@ -39,5 +39,10 @@ namespace Logo.Core.Utils
                 throw new Exception(e.ToString());
             }
         }
+
+        public static void clear()
+        {
+            exceptions.Clear();
+        }
     }
 }

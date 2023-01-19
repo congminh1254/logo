@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace Logo.Core.Utils.Grammar
 {
@@ -13,6 +14,7 @@ namespace Logo.Core.Utils.Grammar
         public Token identifier;
         public List<DeclarationStatement> parameters;
         public BlockStatement body;
+        public object returnData = null;
 
         public FunctionStatement(Token identifier, List<DeclarationStatement> parameters, BlockStatement body)
         {
@@ -23,75 +25,28 @@ namespace Logo.Core.Utils.Grammar
 
         public object Execute(Scope scope)
         {
-            return Execute(scope, null);
-        }
-
-        public object Execute(Scope scope, List<IExpression> args)
-        {
-            int i = 0;
-            Scope newScope = new Scope();
-            if (identifier.textValue != "main")
-            {
-                foreach (DeclarationStatement statement in parameters)
-                {
-                    statement.Execute(newScope);
-                    setScopeVariableValue(newScope, scope, args[i++], statement.name);
-                }
-            }
-            object returned = body.Execute(newScope);
+            if (returnData != null)
+                return returnData;
+            object returned = body.Execute(scope);
             if (returned is ReturnStatement)
-            {
-                object val = ((ReturnStatement)returned).Execute(newScope);
-                return val;
-            }
+                return ((ReturnStatement)returned).Execute(scope);
             // void with no return value
             return null;
-        }
-
-        private void setScopeVariableValue(Scope innerScope, Scope parentScope, IExpression value, String name)
-        {
-            var variable = innerScope.getVariable(name);
-            var variableType = variable.type;
-            var val = value.Evaluate(parentScope);
-
-            if ((val is string && variableType != VariableType.STR)
-                || (val is int && variableType != VariableType.STR)
-                || (val is float && variableType != VariableType.STR)
-                || (val is bool && variableType != VariableType.STR)
-                || (val is TurtleVar && variableType != VariableType.TURTLE))
-            {
-                ErrorHandling.pushError(new ErrorHandling.LogoException("New variable type is diffirence than the original type!"));
-            }
         }
     }
 
     public class FunctionCallStatement : IStatement
     {
-        public string identifier;
-        public List<IExpression> arguments;
+        public FunctionCallExp exp;
 
-        public FunctionCallStatement(string identifier, List<IExpression> arguments)
+        public FunctionCallStatement(AttrExp identifier, List<IExpression> arguments)
         {
-            this.identifier = identifier;
-            this.arguments = arguments;
+            exp = new FunctionCallExp(identifier, arguments);
         }
 
         public object Execute(Scope scope)
         {
-            if (identifier.Equals("prompt"))
-            {
-                return executeSystemFunction(scope, arguments);
-            }
-            return FunctionStorage.getFunction(identifier).Execute(scope);
-        }
-
-        object executeSystemFunction(Scope scope, List<IExpression> arguments)
-        {
-            if (identifier.Equals("prompt"))
-            {
-                return null;
-            }
-            return null;
+            return exp.Evaluate(scope);
         }
     }
 
@@ -113,14 +68,18 @@ namespace Logo.Core.Utils.Grammar
 
         public object Execute(Scope scope)
         {
-            scope.putVariable(new Variable(this));
+            Variable var = scope.getVariable(name);
+            if (var == null)
+            {
+                scope.setVariable(name, var);
+            }
 
             if (variableType == VariableType.TURTLE)
             {
                 object val = value.Evaluate(scope);
                 if (val is TurtleVar)
                 {
-                    scope.putVariable(new Variable(name, VariableType.TURTLE, val));
+                    var.value = val;
                 }
             }
             if (value != null)
@@ -137,7 +96,7 @@ namespace Logo.Core.Utils.Grammar
                     {
                         ErrorHandling.pushError(new ErrorHandling.LogoException("New variable type is diffirence than the original type!", position));
                     }
-                    scope.putVariable(new Variable(name, variableType, val2));
+                    var.value = val2;
                 }
                 if ((val is string && variableType != VariableType.STR)
                         || (val is int && variableType != VariableType.INT)
@@ -147,7 +106,7 @@ namespace Logo.Core.Utils.Grammar
                 {
                     ErrorHandling.pushError(new ErrorHandling.LogoException("New variable type is diffirence than the original type!", position));
                 }
-                scope.putVariable(new Variable(name, variableType, val));
+                var.value = val;
             }
             return null;
         }
@@ -171,30 +130,48 @@ namespace Logo.Core.Utils.Grammar
     public class AssignStatement : IStatement
     {
         public IExpression expression;
-        public string variable;
+        public AttrExp attr;
 
-        public AssignStatement(IExpression expression, string variable)
+        public AssignStatement(AttrExp attr, IExpression exp)
         {
-            this.expression = expression;
-            this.variable = variable;
+            this.attr = attr;
+            this.expression = exp;
         }
 
         public object Execute(Scope scope)
         {
-            Variable variable = scope.getVariable(this.variable);
-            VariableType variableType = variable.type;
             object val = this.expression.Evaluate(scope);
-
-            if ((val is string && variableType != VariableType.STR)
-                        || (val is int && variableType != VariableType.INT)
-                        || (val is float && variableType != VariableType.FLOAT)
-                        || (val is bool && variableType != VariableType.BOOL)
-                        || (val is TurtleVar && variableType != VariableType.TURTLE))
+            if (val is Variable)
+                val = ((Variable)val).value;
+            Variable variable = null;
+            if (attr != null)
+            {
+                var returnValue = attr.Evaluate(scope);
+                if (!(returnValue is Variable) && attr.parent != null)
+                {
+                    ErrorHandling.pushError(new ErrorHandling.LogoException("Can not get variable of attribute!"));
+                    return null;
+                }
+                if (returnValue != null)
+                    variable = (Variable) returnValue;
+            }
+            if (variable == null)
+            {
+                scope.setVariableValue(attr.variableName, val);
+                return null;
+            }
+            
+            if ((val is string && !(variable.value is string))
+                        || (val is int && !(variable.value is int))
+                        || (val is float && !(variable.value is float))
+                        || (val is bool && !(variable.value is bool))
+                        || (val is TurtleVar && !(variable.value is TurtleVar)))
             {
                 ErrorHandling.pushError(new ErrorHandling.LogoException("New variable type is diffirence than the original type!"));
             }
 
-            scope.setVariableValue(this.variable, val);
+            //scope.setVariableValue(this.variable, val);
+            variable.value = val;
             return null;
         }
     }
@@ -279,7 +256,11 @@ namespace Logo.Core.Utils.Grammar
                 {
                     return statement;
                 }
-                statement.Execute(scope);
+                var result = statement.Execute(scope);
+                if (result is ReturnStatement)
+                {
+                    return result;
+                }
             }
             return null;
         }

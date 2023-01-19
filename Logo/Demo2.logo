@@ -1,0 +1,23 @@
+#__1000_1000__
+main() {
+    turtle = Turtle()
+    turtle.Pen.Enable = false
+    turtle.Pen.Color = 0xFF0000
+turtle.Pen.Width = 10
+    turtle.MoveTo(500,400)
+    turtle.Direction = 108
+    turtle.Pen.Enable = true
+
+    x = 0
+    while x<5 {
+        turtle.Move(500)
+        turtle.Direction = (turtle.Direction+216)%360
+        x = x+1
+    }
+turtle.Pen.Enable = false
+turtle.MoveTo(0,0)
+turtle.Pen.Enable = true
+turtle.Pen.TextSize = 40
+turtle.Write("Hello World")
+}
+
