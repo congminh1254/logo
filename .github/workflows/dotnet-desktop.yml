@@ -41,3 +41,6 @@ jobs:
       
     - name: Restore Packages
       run: nuget restore Logo.sln
+    
+    - name: Build
+      run: msbuild.exe Logo.sln 
