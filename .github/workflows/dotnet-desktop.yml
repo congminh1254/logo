@@ -43,4 +43,4 @@ jobs:
       run: nuget restore Logo.sln
     
     - name: Build
-      run: msbuild.exe Logo.sln /p:configuration=$env:Configuration
+      run: msbuild.exe Logo.sln /p:configuration=$env:Configuration /p:platform="Any CPU"
